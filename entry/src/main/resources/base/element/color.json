@@ -3,6 +3,50 @@
     {
       "name": "start_window_background",
       "value": "#FFFFFF"
+    },
+    {
+      "name": "bg_color",
+      "value": "#F5F7FA"
+    },
+    {
+      "name": "primary_color",
+      "value": "#4A7FFF"
+    },
+    {
+      "name": "text_primary",
+      "value": "#1A1A1A"
+    },
+    {
+      "name": "text_secondary",
+      "value": "#666666"
+    },
+    {
+      "name": "text_hint",
+      "value": "#999999"
+    },
+    {
+      "name": "card_bg",
+      "value": "#FFFFFF"
+    },
+    {
+      "name": "icon_bg_blue",
+      "value": "#E8F0FF"
+    },
+    {
+      "name": "icon_bg_orange",
+      "value": "#FFF7ED"
+    },
+    {
+      "name": "icon_bg_green",
+      "value": "#E6F7F5"
+    },
+    {
+      "name": "icon_bg_purple",
+      "value": "#F5F0FF"
+    },
+    {
+      "name": "icon_bg_red",
+      "value": "#FFF0F0"
     }
   ]
 }
