@@ -101,6 +101,18 @@
       "value": "创建账号"
     },
     {
+      "name": "register_nickname_hint",
+      "value": "请输入昵称"
+    },
+    {
+      "name": "register_school_hint",
+      "value": "请输入学校全称"
+    },
+    {
+      "name": "register_major_hint",
+      "value": "请输入专业"
+    },
+    {
       "name": "register_email_hint",
       "value": "请输入邮箱"
     },
@@ -123,6 +135,30 @@
     {
       "name": "register_to_login_action",
       "value": "立即登录"
+    },
+    {
+      "name": "register_nickname_empty",
+      "value": "请输入昵称"
+    },
+    {
+      "name": "register_school_empty",
+      "value": "请输入学校名称"
+    },
+    {
+      "name": "register_major_empty",
+      "value": "请选择或输入专业"
+    },
+    {
+      "name": "register_major_select_hint",
+      "value": "请选择专业"
+    },
+    {
+      "name": "register_major_custom_label",
+      "value": "其他（自定义）"
+    },
+    {
+      "name": "register_major_custom_hint",
+      "value": "请输入您的专业"
     },
     {
       "name": "register_email_empty",

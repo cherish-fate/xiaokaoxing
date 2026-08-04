@@ -1,31 +1,199 @@
 import { promptAction, router } from '@kit.ArkUI';
+import { apiService, Major, RegisterRequest } from '../api/ApiService';
+
+interface MajorSelectorResult {
+  index: number;
+  value: string;
+  majorId: number;
+}
+
+function defaultOnConfirm(result: MajorSelectorResult): void {}
+
+@CustomDialog
+struct MajorSelectorDialog {
+  controller: CustomDialogController = new CustomDialogController({
+    builder: () => {}
+  });
+  @Link majors: Major[];
+  initialIndex: number = 0;
+  @State tempIndex: number = 0;
+  onConfirm: (result: MajorSelectorResult) => void = defaultOnConfirm;
+
+  aboutToAppear(): void {
+    this.tempIndex = this.initialIndex < 0 ? 0 : this.initialIndex;
+  }
+
+  build() {
+    Column() {
+      Text($r('app.string.register_major_select_hint'))
+        .fontSize(16)
+        .fontWeight(FontWeight.Medium)
+        .margin({ top: 16, bottom: 8 })
+
+      TextPicker({ range: this.majors.map((m: Major) => m.name), selected: this.tempIndex })
+        .layoutWeight(1)
+        .onChange((value: string | string[], index: number | number[]) => {
+          this.tempIndex = index as number;
+        })
+
+      Row() {
+        Button('取消')
+          .layoutWeight(1)
+          .height(44)
+          .backgroundColor($r('app.color.card_bg'))
+          .fontColor($r('app.color.text_secondary'))
+          .borderRadius(12)
+          .onClick(() => {
+            this.controller.close();
+          })
+
+        Blank()
+          .width(12)
+
+        Button('确定')
+          .layoutWeight(1)
+          .height(44)
+          .backgroundColor($r('app.color.primary_color'))
+          .fontColor(Color.White)
+          .borderRadius(12)
+          .onClick(() => {
+            const idx: number = this.tempIndex < 0 ? 0 : this.tempIndex;
+            const major: Major = this.majors[idx];
+            this.onConfirm({ index: idx, value: major.name, majorId: major.id });
+            this.controller.close();
+          })
+      }
+      .width('100%')
+      .padding({ left: 16, right: 16, bottom: 16, top: 8 })
+    }
+    .width('100%')
+    .height(360)
+    .backgroundColor($r('app.color.bg_color'))
+    .borderRadius({ topLeft: 20, topRight: 20 })
+  }
+}
 
 @Entry
 @Component
 struct RegisterPage {
+  @State nickname: string = '';
+  @State school: string = '';
+  @State majorIndex: number = -1;
+  @State selectedMajorId: number = -1;
+  @State selectedMajorName: string = '';
   @State email: string = '';
   @State password: string = '';
   @State confirmPassword: string = '';
+  @State majors: Major[] = [];
+  @State isLoadingMajors: boolean = true;
+  @State isSubmitting: boolean = false;
+
+  private majorDialogController: CustomDialogController = new CustomDialogController({
+    builder: MajorSelectorDialog({
+      majors: $majors,
+      initialIndex: this.majorIndex,
+      onConfirm: (result: MajorSelectorResult): void => {
+        this.majorIndex = result.index;
+        this.selectedMajorId = result.majorId;
+        this.selectedMajorName = result.value;
+      }
+    }),
+    alignment: DialogAlignment.Bottom,
+    customStyle: true,
+    autoCancel: true,
+    offset: { dx: 0, dy: 0 }
+  });
+
+  aboutToAppear(): void {
+    this.loadMajors();
+  }
+
+  private async loadMajors(): Promise<void> {
+    this.isLoadingMajors = true;
+    try {
+      const res = await apiService.getMajors();
+      if (res.code === 200 && res.data) {
+        this.majors = res.data;
+      } else {
+        this.showToast(res.message || '加载专业列表失败');
+      }
+    } catch (e) {
+      this.showToast('加载专业列表失败，请检查网络');
+    } finally {
+      this.isLoadingMajors = false;
+    }
+  }
 
   private showToast(message: Resource | string): void {
     promptAction.showToast({ message, duration: 2000 });
   }
 
-  private handleRegister(): void {
-    if (this.email.trim().length === 0) {
-      this.showToast($r('app.string.register_email_empty'));
-      return;
-    }
-    if (this.password.length < 6) {
-      this.showToast($r('app.string.register_password_too_short'));
-      return;
-    }
-    if (this.password !== this.confirmPassword) {
-      this.showToast($r('app.string.register_password_not_match'));
+  private isValidEmail(email: string): boolean {
+    const regExp = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    return regExp.test(email);
+  }
+
+  private async handleRegister(): Promise<void> {
+    if (this.isSubmitting) {
       return;
     }
 
-    // TODO: 调用注册接口，完成后跳转首页或登录页
+    if (this.nickname.trim().length === 0) {
+      this.showToast('昵称不能为空');
+      return;
+    }
+    if (this.school.trim().length === 0) {
+      this.showToast('学校名称不能为空');
+      return;
+    }
+    if (this.selectedMajorId <= 0) {
+      this.showToast('请选择专业');
+      return;
+    }
+    if (this.email.trim().length === 0) {
+      this.showToast('邮箱不能为空');
+      return;
+    }
+    if (!this.isValidEmail(this.email.trim())) {
+      this.showToast('邮箱格式不正确');
+      return;
+    }
+    if (this.password.length < 6) {
+      this.showToast('密码至少6位');
+      return;
+    }
+    if (this.password !== this.confirmPassword) {
+      this.showToast('两次输入的密码不一致');
+      return;
+    }
+
+    this.isSubmitting = true;
+
+    const req: RegisterRequest = {
+      nickname: this.nickname.trim(),
+      email: this.email.trim(),
+      password: this.password,
+      school_name: this.school.trim(),
+      major_id: this.selectedMajorId
+    };
+
+    try {
+      const res = await apiService.register(req);
+      if (res.code === 201) {
+        this.showToast('注册成功');
+        setTimeout(() => {
+          router.replaceUrl({ url: 'pages/Login' });
+        }, 1500);
+      } else if (res.code === 409) {
+        this.showToast('该邮箱已注册，请直接登录');
+      } else {
+        this.showToast(res.message || '注册失败，请重试');
+      }
+    } catch (e) {
+      this.showToast('网络请求失败，请稍后重试');
+    } finally {
+      this.isSubmitting = false;
+    }
   }
 
   private goToLogin(): void {
@@ -68,6 +236,54 @@ struct RegisterPage {
               .fontColor($r('app.color.text_primary'))
               .width('100%')
 
+            TextInput({ placeholder: $r('app.string.register_nickname_hint'), text: $$this.nickname })
+              .width('100%')
+              .height(52)
+              .placeholderColor($r('app.color.text_hint'))
+              .fontSize(16)
+              .fontColor($r('app.color.text_primary'))
+              .backgroundColor($r('app.color.card_bg'))
+              .borderRadius(16)
+              .padding({ left: 16, right: 16 })
+
+            TextInput({ placeholder: $r('app.string.register_school_hint'), text: $$this.school })
+              .width('100%')
+              .height(52)
+              .placeholderColor($r('app.color.text_hint'))
+              .fontSize(16)
+              .fontColor($r('app.color.text_primary'))
+              .backgroundColor($r('app.color.card_bg'))
+              .borderRadius(16)
+              .padding({ left: 16, right: 16 })
+
+            Row() {
+              Text(this.majorIndex < 0
+                ? (this.isLoadingMajors ? '加载中...' : '请选择专业')
+                : this.selectedMajorName)
+                .fontSize(16)
+                .fontColor(this.majorIndex < 0 ? $r('app.color.text_hint') : $r('app.color.text_primary'))
+                .layoutWeight(1)
+              if (!this.isLoadingMajors) {
+                Text('›')
+                  .fontSize(20)
+                  .fontColor($r('app.color.text_hint'))
+              }
+            }
+            .width('100%')
+            .height(52)
+            .backgroundColor($r('app.color.card_bg'))
+            .borderRadius(16)
+            .padding({ left: 16, right: 16 })
+            .onClick(() => {
+              if (!this.isLoadingMajors && this.majors.length > 0) {
+                this.majorDialogController.open();
+              } else if (this.isLoadingMajors) {
+                this.showToast('专业列表加载中，请稍候');
+              } else {
+                this.showToast('专业列表加载失败，请重试');
+              }
+            })
+
             TextInput({ placeholder: $r('app.string.register_email_hint'), text: $$this.email })
               .width('100%')
               .height(52)
@@ -101,16 +317,17 @@ struct RegisterPage {
               .borderRadius(16)
               .padding({ left: 16, right: 16 })
 
-            Button($r('app.string.register_button'))
+            Button(this.isSubmitting ? '注册中...' : $r('app.string.register_button'))
               .width('100%')
               .height(52)
-              .backgroundColor($r('app.color.primary_color'))
+              .backgroundColor(this.isSubmitting ? $r('app.color.text_hint') : $r('app.color.primary_color'))
               .borderRadius(16)
               .fontSize(16)
               .fontWeight(FontWeight.Medium)
               .fontColor(Color.White)
               .shadow({ radius: 8, color: 'rgba(74, 127, 255, 0.4)', offsetY: 4 })
               .margin({ top: 8 })
+              .enabled(!this.isSubmitting)
               .onClick(() => this.handleRegister())
 
             Row() {
