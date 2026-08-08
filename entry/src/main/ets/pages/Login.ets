@@ -48,7 +48,7 @@ struct LoginPage {
         await apiService.saveToken(res.data.token);
         this.showToast('登录成功');
         setTimeout(() => {
-          router.replaceUrl({ url: 'pages/Index' });
+          router.replaceUrl({ url: 'pages/HomePage' });
         }, 1000);
       } else if (res.code === 400) {
         this.showToast(res.message || '请求参数错误');

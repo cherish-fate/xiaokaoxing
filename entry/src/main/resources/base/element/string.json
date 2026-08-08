@@ -1,200 +1,74 @@
 {
   "string": [
-    {
-      "name": "module_desc",
-      "value": "module description"
-    },
-    {
-      "name": "EntryAbility_desc",
-      "value": "description"
-    },
-    {
-      "name": "EntryAbility_label",
-      "value": "label"
-    },
-    {
-      "name": "app_title",
-      "value": "校考星"
-    },
-    {
-      "name": "app_subtitle1",
-      "value": "大学生期末备考一站式平台"
-    },
-    {
-      "name": "app_subtitle2",
-      "value": "让备考更高效、更从容"
-    },
-    {
-      "name": "stat_students",
-      "value": "5万+"
-    },
-    {
-      "name": "stat_students_label",
-      "value": "在校学生"
-    },
-    {
-      "name": "stat_schools",
-      "value": "1+"
-    },
-    {
-      "name": "stat_schools_label",
-      "value": "合作高校"
-    },
-    {
-      "name": "stat_rate",
-      "value": "98%"
-    },
-    {
-      "name": "stat_rate_label",
-      "value": "通过率提升"
-    },
-    {
-      "name": "feature1_title",
-      "value": "考试管理"
-    },
-    {
-      "name": "feature1_desc",
-      "value": "智能倒计时，考场地点一览无余"
-    },
-    {
-      "name": "feature2_title",
-      "value": "AI智能备考"
-    },
-    {
-      "name": "feature2_desc",
-      "value": "试题拆解、模拟卷、智能答疑"
-    },
-    {
-      "name": "feature3_title",
-      "value": "本校资源库"
-    },
-    {
-      "name": "feature3_desc",
-      "value": "历年真题、复习提纲精准推送"
-    },
-    {
-      "name": "feature4_title",
-      "value": "互助社区"
-    },
-    {
-      "name": "feature4_desc",
-      "value": "组备考小队，一起冲过期末"
-    },
-    {
-      "name": "feature5_title",
-      "value": "绩点计算器"
-    },
-    {
-      "name": "feature5_desc",
-      "value": "预测综合分，提前规避挂科风险"
-    },
-    {
-      "name": "btn_start",
-      "value": "立即开始备考"
-    },
-    {
-      "name": "btn_login",
-      "value": "已有账号？去登录"
-    },
-    {
-      "name": "register_title",
-      "value": "创建账号"
-    },
-    {
-      "name": "register_nickname_hint",
-      "value": "请输入昵称"
-    },
-    {
-      "name": "register_school_hint",
-      "value": "请输入学校全称"
-    },
-    {
-      "name": "register_major_hint",
-      "value": "请输入专业"
-    },
-    {
-      "name": "register_email_hint",
-      "value": "请输入邮箱"
-    },
-    {
-      "name": "register_password_hint",
-      "value": "设置密码（至少6位）"
-    },
-    {
-      "name": "register_confirm_password_hint",
-      "value": "确认密码"
-    },
-    {
-      "name": "register_button",
-      "value": "注册"
-    },
-    {
-      "name": "register_to_login_prefix",
-      "value": "已有账号？"
-    },
-    {
-      "name": "register_to_login_action",
-      "value": "立即登录"
-    },
-    {
-      "name": "register_nickname_empty",
-      "value": "请输入昵称"
-    },
-    {
-      "name": "register_school_empty",
-      "value": "请输入学校名称"
-    },
-    {
-      "name": "register_major_empty",
-      "value": "请选择或输入专业"
-    },
-    {
-      "name": "register_major_select_hint",
-      "value": "请选择专业"
-    },
-    {
-      "name": "register_major_custom_label",
-      "value": "其他（自定义）"
-    },
-    {
-      "name": "register_major_custom_hint",
-      "value": "请输入您的专业"
-    },
-    {
-      "name": "register_email_empty",
-      "value": "请输入邮箱"
-    },
-    {
-      "name": "register_password_too_short",
-      "value": "密码长度至少为6位"
-    },
-    {
-      "name": "register_password_not_match",
-      "value": "两次输入的密码不一致"
-    },
-    {
-      "name": "login_title",
-      "value": "欢迎回来"
-    },
-    {
-      "name": "login_email_hint",
-      "value": "请输入邮箱"
-    },
-    {
-      "name": "login_password_hint",
-      "value": "请输入密码"
-    },
-    {
-      "name": "login_button",
-      "value": "登录"
-    },
-    {
-      "name": "login_to_register_prefix",
-      "value": "还没有账号？"
-    },
-    {
-      "name": "login_to_register_action",
-      "value": "立即注册"
-    }
+    { "name": "module_desc", "value": "module description" },
+    { "name": "EntryAbility_desc", "value": "description" },
+    { "name": "EntryAbility_label", "value": "label" },
+    { "name": "app_title", "value": "校考星" },
+    { "name": "app_subtitle1", "value": "大学生期末备考一站式平台" },
+    { "name": "app_subtitle2", "value": "让备考更高效、更从容" },
+    { "name": "stat_students", "value": "5万+" },
+    { "name": "stat_students_label", "value": "在校学生" },
+    { "name": "stat_schools", "value": "1+" },
+    { "name": "stat_schools_label", "value": "合作高校" },
+    { "name": "stat_rate", "value": "98%" },
+    { "name": "stat_rate_label", "value": "通过率提升" },
+    { "name": "feature1_title", "value": "考试管理" },
+    { "name": "feature1_desc", "value": "智能倒计时，考场地点一览无余" },
+    { "name": "feature2_title", "value": "AI智能备考" },
+    { "name": "feature2_desc", "value": "试题拆解、模拟卷、智能答疑" },
+    { "name": "feature3_title", "value": "本校资源库" },
+    { "name": "feature3_desc", "value": "历年真题、复习提纲精准推送" },
+    { "name": "feature4_title", "value": "互助社区" },
+    { "name": "feature4_desc", "value": "组备考小队，一起冲过期末" },
+    { "name": "feature5_title", "value": "绩点计算器" },
+    { "name": "feature5_desc", "value": "预测综合分，提前规避挂科风险" },
+    { "name": "btn_start", "value": "立即开始备考" },
+    { "name": "btn_login", "value": "已有账号？去登录" },
+    { "name": "register_title", "value": "创建账号" },
+    { "name": "register_nickname_hint", "value": "请输入昵称" },
+    { "name": "register_school_hint", "value": "请输入学校全称" },
+    { "name": "register_major_hint", "value": "请输入专业" },
+    { "name": "register_email_hint", "value": "请输入邮箱" },
+    { "name": "register_password_hint", "value": "设置密码（至少6位）" },
+    { "name": "register_confirm_password_hint", "value": "确认密码" },
+    { "name": "register_button", "value": "注册" },
+    { "name": "register_to_login_prefix", "value": "已有账号？" },
+    { "name": "register_to_login_action", "value": "立即登录" },
+    { "name": "register_nickname_empty", "value": "请输入昵称" },
+    { "name": "register_school_empty", "value": "请输入学校名称" },
+    { "name": "register_major_empty", "value": "请选择或输入专业" },
+    { "name": "register_major_select_hint", "value": "请选择专业" },
+    { "name": "register_major_custom_label", "value": "其他（自定义）" },
+    { "name": "register_major_custom_hint", "value": "请输入您的专业" },
+    { "name": "register_email_empty", "value": "请输入邮箱" },
+    { "name": "register_password_too_short", "value": "密码长度至少为6位" },
+    { "name": "register_password_not_match", "value": "两次输入的密码不一致" },
+    { "name": "login_title", "value": "欢迎回来" },
+    { "name": "login_email_hint", "value": "请输入邮箱" },
+    { "name": "login_password_hint", "value": "请输入密码" },
+    { "name": "login_button", "value": "登录" },
+    { "name": "login_to_register_prefix", "value": "还没有账号？" },
+    { "name": "login_to_register_action", "value": "立即注册" },
+    { "name": "home_tab_home", "value": "首页" },
+    { "name": "home_tab_prep", "value": "备考" },
+    { "name": "home_tab_community", "value": "社区" },
+    { "name": "home_tab_tool", "value": "工具" },
+    { "name": "home_tab_me", "value": "我的" },
+    { "name": "home_countdown_title", "value": "最近考试倒计时" },
+    { "name": "home_today_progress", "value": "今日进度" },
+    { "name": "home_no_exam", "value": "暂无考试，去添加" },
+    { "name": "home_add_exam", "value": "添加考试" },
+    { "name": "home_exam_schedule", "value": "考试时间表" },
+    { "name": "home_today_task", "value": "今日任务" },
+    { "name": "home_no_task", "value": "今日暂无任务，去备考页添加学习计划吧" },
+    { "name": "home_go_prep", "value": "去备考页添加学习计划" },
+    { "name": "home_recommend_resource", "value": "本校速推资源" },
+    { "name": "home_more", "value": "更多" },
+    { "name": "home_no_resource", "value": "暂无推荐资源" },
+    { "name": "home_loading", "value": "加载中..." },
+    { "name": "home_retry", "value": "点击重试" },
+    { "name": "home_exam_completed", "value": "已完成" },
+    { "name": "home_exam_pending", "value": "待完成" },
+    { "name": "home_exam_total", "value": "门考试" }
   ]
 }
