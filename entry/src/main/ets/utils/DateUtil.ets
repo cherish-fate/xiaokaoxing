@@ -55,4 +55,15 @@ export class DateUtil {
     }
     return start;
   }
+
+  static toShortDate(longDate: string): string {
+    if (!longDate) return '';
+    if (longDate.length >= 10) {
+      return longDate.substring(2);
+    }
+    if (longDate.length >= 8) {
+      return longDate;
+    }
+    return longDate;
+  }
 }

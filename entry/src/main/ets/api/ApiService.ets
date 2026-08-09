@@ -115,6 +115,61 @@ export interface ResourceItem {
   type_tag: string;
   description: string;
   file_url?: string;
+  category?: string;
+  is_hot?: boolean;
+  author?: string;
+  created_at?: string;
+  view_count?: number;
+  is_favorited?: boolean;
+}
+
+export interface RecommendationItem {
+  id: number;
+  emoji: string;
+  description: string;
+  suggestion: string;
+  target_type: string;
+  target_id: number;
+}
+
+export interface ResourceListData {
+  total: number;
+  list: ResourceItem[];
+  keyword?: string;
+}
+
+export interface PrepHomeResponse {
+  recommendations: RecommendationItem[];
+  resources: ResourceListData;
+}
+
+export interface FavoriteRequest {
+  is_favorited: boolean;
+}
+
+export interface FavoriteResponse {
+  resource_id: number;
+  is_favorited: boolean;
+}
+
+export interface AiChatRequest {
+  message: string;
+  conversation_id?: string;
+  attachment_url?: string;
+}
+
+export interface AiUploadResponse {
+  file_url: string;
+  file_name: string;
+  file_size: number;
+}
+
+interface SseChunkMessage {
+  type: string;
+  content?: string;
+  conversation_id?: string;
+  full_content?: string;
+  message?: string;
 }
 
 interface userInterface {
@@ -148,6 +203,7 @@ export interface TodayTaskResponse {
 export interface ResourceListResponse {
   total: number;
   list: ResourceItem[];
+  keyword?: string;
   empty_hint?: string;
 }
 
@@ -314,6 +370,162 @@ class ApiService {
       null,
       true,
     );
+  }
+
+  async fetchPrepHome(
+    category: string = '真题试卷',
+    limit: number = 10,
+    offset: number = 0
+  ): Promise<ApiResponse<PrepHomeResponse>> {
+    const query: Record<string, string | number> = {};
+    query['category'] = category;
+    query['limit'] = limit;
+    query['offset'] = offset;
+    return this.request<PrepHomeResponse>('/api/prep/home', http.RequestMethod.GET, null, true, query);
+  }
+
+  async fetchResources(
+    category: string = '',
+    limit: number = 10,
+    offset: number = 0
+  ): Promise<ApiResponse<ResourceListResponse>> {
+    const query: Record<string, string | number> = {};
+    query['limit'] = limit;
+    query['offset'] = offset;
+    if (category) {
+      query['category'] = category;
+    }
+    return this.request<ResourceListResponse>('/api/resources', http.RequestMethod.GET, null, true, query);
+  }
+
+  async searchResources(
+    keyword: string,
+    limit: number = 10,
+    offset: number = 0
+  ): Promise<ApiResponse<ResourceListResponse>> {
+    const query: Record<string, string | number> = {};
+    query['keyword'] = keyword;
+    query['limit'] = limit;
+    query['offset'] = offset;
+    return this.request<ResourceListResponse>('/api/resources/search', http.RequestMethod.GET, null, true, query);
+  }
+
+  async toggleFavorite(id: number, req: FavoriteRequest): Promise<ApiResponse<FavoriteResponse>> {
+    return this.request<FavoriteResponse>(
+      `/api/resources/${id}/favorite`,
+      http.RequestMethod.POST,
+      req,
+      true
+    );
+  }
+
+  async uploadAiFile(formData: ArrayBuffer, fileName: string): Promise<ApiResponse<AiUploadResponse>> {
+    return this.requestMultipart<AiUploadResponse>(
+      '/api/ai/upload',
+      formData,
+      fileName
+    );
+  }
+
+  private async requestMultipart<T>(
+    path: string,
+    fileBuffer: ArrayBuffer,
+    fileName: string
+  ): Promise<ApiResponse<T>> {
+    if (!this.httpRequest) {
+      this.httpRequest = http.createHttp();
+    }
+    const url = `${BASE_URL}${path}`;
+    const token = await this.getToken();
+    const boundary = '---xiaokaoxing-boundary';
+    const headerStr = '--' + boundary + '\r\nContent-Disposition: form-data; name="file"; filename="' + fileName + '"\r\nContent-Type: application/octet-stream\r\n\r\n';
+    const footerStr = '\r\n--' + boundary + '--\r\n';
+    const headerBytes = new Uint8Array(headerStr.length);
+    for (let i = 0; i < headerStr.length; i++) headerBytes[i] = headerStr.charCodeAt(i);
+    const footerBytes = new Uint8Array(footerStr.length);
+    for (let i = 0; i < footerStr.length; i++) footerBytes[i] = footerStr.charCodeAt(i);
+    const totalLen = headerBytes.length + fileBuffer.byteLength + footerBytes.length;
+    const combined = new Uint8Array(totalLen);
+    combined.set(headerBytes, 0);
+    combined.set(new Uint8Array(fileBuffer), headerBytes.length);
+    combined.set(footerBytes, headerBytes.length + fileBuffer.byteLength);
+    const headers: Record<string, string> = {};
+    headers['Content-Type'] = 'multipart/form-data; boundary=' + boundary;
+    headers['Authorization'] = token ? 'Bearer ' + token : '';
+    try {
+      const response = await this.httpRequest.request(url, {
+        method: http.RequestMethod.POST,
+        header: headers,
+        extraData: combined.buffer.slice(combined.byteOffset, combined.byteOffset + combined.byteLength) as ArrayBuffer,
+        connectTimeout: 30000,
+        readTimeout: 30000
+      });
+      const result: ApiResponse<T> = JSON.parse(response.result as string);
+      return result;
+    } catch (error) {
+      Logger.error(TAG, `HTTP multipart请求失败: ${url}`, error as Error);
+      return { code: 500, message: '文件上传失败', data: null };
+    }
+  }
+
+  async chatStream(
+    req: AiChatRequest,
+    onChunk: (content: string) => void,
+    onDone: (conversationId: string, fullContent: string) => void,
+    onError: (msg: string) => void
+  ): Promise<void> {
+    if (!this.httpRequest) {
+      this.httpRequest = http.createHttp();
+    }
+    const url = `${BASE_URL}/api/ai/chat`;
+    const token = await this.getToken();
+    const headers: Record<string, string> = {};
+    headers['Content-Type'] = 'application/json';
+    headers['Accept'] = 'text/event-stream';
+    headers['Authorization'] = token ? `Bearer ${token}` : '';
+    try {
+      const response = await this.httpRequest.request(url, {
+        method: http.RequestMethod.POST,
+        header: headers,
+        extraData: JSON.stringify(req),
+        connectTimeout: 30000,
+        readTimeout: 30000
+      });
+      const body = response.result as string;
+      const lines = body.split('\n');
+      let fullContent = '';
+      let conversationId = '';
+      for (const line of lines) {
+        const trimmed = line.trim();
+        if (trimmed.startsWith('data:')) {
+          const payload = trimmed.substring(5).trim();
+          if (!payload) continue;
+          try {
+            const obj: SseChunkMessage = JSON.parse(payload) as SseChunkMessage;
+            if (obj.type === 'chunk') {
+              fullContent += obj.content || '';
+              onChunk(obj.content || '');
+            } else if (obj.type === 'done') {
+              conversationId = obj.conversation_id || '';
+              if (obj.full_content) {
+                fullContent = obj.full_content;
+              }
+              onDone(conversationId, fullContent);
+            } else if (obj.type === 'error') {
+              onError(obj.message || 'AI 服务错误');
+            }
+          } catch (e) {
+            Logger.warn(TAG, `解析SSE消息失败: ${payload}`);
+          }
+        }
+      }
+      if (conversationId === '' && fullContent !== '') {
+        onDone('', fullContent);
+      }
+    } catch (error) {
+      Logger.error(TAG, `AI chat请求失败`, error as Error);
+      onError('AI 服务暂时不可用，请稍后重试');
+    }
   }
 
   destroy(): void {

@@ -58,7 +58,7 @@ export struct BottomTabBar {
     .onClick(() => {
       if (item.index !== this.currentIndex) {
         this.onChange(item.index);
-        if (item.url && item.index === TabIndex.HOME) {
+        if (item.url) {
           RouterUtil.replace(item.url);
         }
       }

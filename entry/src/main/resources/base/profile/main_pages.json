@@ -8,6 +8,11 @@
     "pages/ExamDetailPage",
     "pages/ResourceListPage",
     "pages/TaskAddPage",
-    "pages/TaskDetailPage"
+    "pages/TaskDetailPage",
+    "pages/PrepPage",
+    "pages/SearchPage",
+    "pages/AiChatPage",
+    "pages/NotificationPage",
+    "pages/ResourceDetailPage"
   ]
 }

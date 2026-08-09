@@ -11,4 +11,6 @@ export class RouteUrls {
   static readonly TASK_ADD: string = 'pages/TaskAddPage';
   static readonly TASK_DETAIL: string = 'pages/TaskDetailPage';
   static readonly NOTIFICATION: string = 'pages/NotificationPage';
+  static readonly SEARCH: string = 'pages/SearchPage';
+  static readonly AI_CHAT: string = 'pages/AiChatPage';
 }
