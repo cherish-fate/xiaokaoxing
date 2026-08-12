@@ -51,19 +51,9 @@ export struct TodayTaskSection {
   @Builder
   EmptyHint() {
     Column({ space: 12 }) {
-      Text(this.taskList?.emptyHint || '今日暂无任务，去备考页添加学习计划吧')
+      Text(this.taskList?.emptyHint || '今日暂无任务，开始添加学习计划吧')
         .fontSize(14)
         .fontColor(AppColors.TEXT_SECONDARY)
-      Button('去备考中心添加学习计划')
-        .height(36)
-        .padding({ left: 20, right: 20 })
-        .backgroundColor(AppColors.PRIMARY)
-        .fontSize(13)
-        .fontColor(Color.White)
-        .borderRadius(18)
-        .onClick(() => {
-          RouterUtil.push(RouteUrls.TASK_PREP);
-        })
     }
     .width('100%')
     .padding(20)

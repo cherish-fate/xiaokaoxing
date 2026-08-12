@@ -186,7 +186,8 @@ struct TaskDetailPage {
     const newValue = !this.isCompleted;
     this.isCompleted = newValue;
     try {
-      const result = await taskRepository.updateTask(this.taskId, { is_completed: newValue });
+      const toggleReq: UpdateTaskRequest = { is_completed: newValue };
+      const result = await taskRepository.updateTask(this.taskId, toggleReq);
       if (!result.success) {
         this.isCompleted = !newValue;
         if (result.code === 401) {

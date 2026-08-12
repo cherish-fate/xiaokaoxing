@@ -24,7 +24,7 @@ export struct BottomTabBar {
   private tabs: Array<tabsComponent> = [
     { icon: $r('app.media.home_home'), label: AppText.TAB_HOME, index: TabIndex.HOME, url: RouteUrls.HOME },
     { icon:$r('app.media.home_beikao'), label: AppText.TAB_PREP, index: TabIndex.PREP, url: RouteUrls.TASK_PREP },
-    { icon: $r('app.media.home_community'), label: AppText.TAB_COMMUNITY, index: TabIndex.COMMUNITY, url: '' },
+    { icon: $r('app.media.home_community'), label: AppText.TAB_COMMUNITY, index: TabIndex.COMMUNITY, url: RouteUrls.COMMUNITY },
     { icon: $r('app.media.home_tool'), label: AppText.TAB_TOOL, index: TabIndex.TOOL, url: '' },
     { icon: $r('app.media.home_mine'), label: AppText.TAB_ME, index: TabIndex.ME, url: '' }
   ];
@@ -35,20 +35,25 @@ export struct BottomTabBar {
         this.TabItem(item)
       })
     }
-    .width('100%')
-    .height(56)
-    .backgroundColor(Color.White)
-    .shadow({ radius: 8, color: 'rgba(0,0,0,0.06)', offsetY: -2 })
+    .height(60)
+    .borderRadius(30)
+    .backgroundBlurStyle(BlurStyle.Thick)
+    .backgroundColor('rgba(255, 255, 255, 0.55)')
+    .border({ width: 1, color: 'rgba(255, 255, 255, 0.5)' })
+    .shadow({ radius: 24, color: 'rgba(0, 0, 0, 0.14)', offsetY: 6 })
     .justifyContent(FlexAlign.SpaceAround)
+    .margin({ left: 15, right: 15, bottom: 16 })
   }
 
   @Builder
   TabItem(item: tabsComponent) {
     Column({ space: 3 }) {
-      Text(item.icon)
-        .width(40)
+      Image(item.icon)
+        .fillColor(this.currentIndex === item.index ? AppColors.PRIMARY : AppColors.TEXT_HINT)
+        .width(24)
+        .height(24)
       Text(item.label)
-        .fontSize(18)
+        .fontSize(12)
         .fontColor(this.currentIndex === item.index ? AppColors.PRIMARY : AppColors.TEXT_HINT)
         .fontWeight(this.currentIndex === item.index ? FontWeight.Medium : FontWeight.Normal)
     }

@@ -208,7 +208,7 @@ struct PrepPage {
         onMoreClick: ():void => this.onMoreClick()
       });
 
-      Blank().height(40);
+      Blank().height(90);
     }
     .width('100%')
     .padding({
@@ -223,24 +223,32 @@ struct PrepPage {
     Column() {
       this.PageHeader();
 
-      if (this.pageState === 'LOADING') {
-        this.LoadingView();
-      } else if (this.pageState === 'ERROR') {
-        this.ErrorView();
-      } else {
-        Scroll() {
-          Column() {
-            this.ContentView();
+      Stack({ alignContent: Alignment.Bottom }) {
+        Column() {
+          if (this.pageState === 'LOADING') {
+            this.LoadingView();
+          } else if (this.pageState === 'ERROR') {
+            this.ErrorView();
+          } else {
+            Scroll() {
+              Column() {
+                this.ContentView();
+              }
+              .width('100%');
+            }
+            .width('100%')
+            .layoutWeight(1)
+            .scrollBar(BarState.Off)
+            .onReachEnd(() => this.onLoadMore());
           }
-          .width('100%');
         }
         .width('100%')
-        .layoutWeight(1)
-        .scrollBar(BarState.Off)
-        .onReachEnd(() => this.onLoadMore());
-      }
+        .height('100%')
 
-      BottomTabBar({ currentIndex: 1 });
+        BottomTabBar({ currentIndex: 1 });
+      }
+      .layoutWeight(1)
+      .width('100%')
     }
     .width('100%')
     .height('100%')

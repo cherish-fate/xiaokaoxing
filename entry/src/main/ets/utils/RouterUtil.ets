@@ -73,4 +73,14 @@ export class RouterUtil {
     p['category'] = category;
     RouterUtil.pushWithParams(RouteUrls.RESOURCE_LIST, p);
   }
+
+  static getParams(): Record<string, Object> {
+    try {
+      const params = router.getParams() as Record<string, Object>;
+      return params || {};
+    } catch (e) {
+      Logger.error(TAG, 'getParams failed', e as Error);
+      return {};
+    }
+  }
 }

@@ -174,29 +174,33 @@ struct HomePage {
   }
 
   build() {
-    Column() {
-      if (this.pageState === PageState.LOADING) {
-        Column() {
-          LoadingView({ message: '正在加载首页...' })
+    Stack({ alignContent: Alignment.Bottom }) {
+      Column() {
+        if (this.pageState === PageState.LOADING) {
+          Column() {
+            LoadingView({ message: '正在加载首页...' })
+          }
+          .width('100%')
+          .layoutWeight(1)
+        } else if (this.pageState === PageState.ERROR) {
+          Column() {
+            ErrorView({
+              message: this.errorMessage,
+              onRetry: () => this.loadData()
+            })
+          }
+          .width('100%')
+          .layoutWeight(1)
+        } else {
+          Column() {
+            this.ContentArea()
+          }
+          .width('100%')
+          .layoutWeight(1)
         }
-        .width('100%')
-        .layoutWeight(1)
-      } else if (this.pageState === PageState.ERROR) {
-        Column() {
-          ErrorView({
-            message: this.errorMessage,
-            onRetry: () => this.loadData()
-          })
-        }
-        .width('100%')
-        .layoutWeight(1)
-      } else {
-        Column() {
-          this.ContentArea()
-        }
-        .width('100%')
-        .layoutWeight(1)
       }
+      .width('100%')
+      .height('100%')
 
       BottomTabBar({
         currentIndex: this.currentTab,
@@ -248,7 +252,7 @@ struct HomePage {
             resources: this.homeData.resources
           })
         }
-        .padding({ bottom: 80 })
+        .padding({ bottom: 110 })
       }
       .scrollBar(BarState.Off)
       .edgeEffect(EdgeEffect.Spring)

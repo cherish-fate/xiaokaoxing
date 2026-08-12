@@ -320,7 +320,8 @@ struct ExamDetailPage {
     const newValue = !this.isCompleted;
     this.isCompleted = newValue;
     try {
-      const result = await examRepository.updateExam(this.examId, { is_completed: newValue });
+      const toggleReq: UpdateExamRequest = { is_completed: newValue };
+      const result = await examRepository.updateExam(this.examId, toggleReq);
       if (!result.success) {
         this.isCompleted = !newValue;
         if (result.code === 401) {

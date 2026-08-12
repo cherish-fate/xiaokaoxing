@@ -66,4 +66,18 @@ export class DateUtil {
     }
     return longDate;
   }
+
+  static toShortDateTime(longDate: string): string {
+    if (!longDate) return '';
+    // 支持 ISO8601 格式：YYYY-MM-DDTHH:mm:ssZ 或 YYYY-MM-DD HH:mm:ss
+    // 去掉末尾Z，保留 年-月-日 时:分
+    const cleaned = longDate.replace('Z', '').replace('T', ' ');
+    if (cleaned.length >= 16) {
+      return cleaned.substring(5, 16); // MM-DD HH:mm
+    }
+    if (cleaned.length >= 10) {
+      return cleaned.substring(5); // MM-DD ...
+    }
+    return cleaned;
+  }
 }

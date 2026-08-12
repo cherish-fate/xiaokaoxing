@@ -13,4 +13,11 @@ export class RouteUrls {
   static readonly NOTIFICATION: string = 'pages/NotificationPage';
   static readonly SEARCH: string = 'pages/SearchPage';
   static readonly AI_CHAT: string = 'pages/AiChatPage';
+  // 社区模块
+  static readonly COMMUNITY: string = 'pages/CommunityPage';
+  static readonly COMMUNITY_CHECKIN: string = 'pages/CheckinPage';
+  static readonly COMMUNITY_TEAM: string = 'pages/TeamPage';
+  static readonly COMMUNITY_TEAM_DETAIL: string = 'pages/TeamDetailPage';
+  static readonly COMMUNITY_VOTE: string = 'pages/VotePage';
+  static readonly COMMUNITY_UPLOAD: string = 'pages/UploadResourcePage';
 }
