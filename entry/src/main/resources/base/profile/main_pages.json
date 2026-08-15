@@ -19,6 +19,14 @@
     "pages/TeamPage",
     "pages/TeamDetailPage",
     "pages/VotePage",
-    "pages/UploadResourcePage"
+    "pages/UploadResourcePage",
+    "pages/ToolPage",
+    "pages/DailyQuestionPage",
+    "pages/DailyQuestionResultPage",
+    "pages/NoteListPage",
+    "pages/NoteEditorPage",
+    "pages/GpaPage",
+    "pages/DocumentListPage",
+    "pages/BookmarkListPage"
   ]
 }

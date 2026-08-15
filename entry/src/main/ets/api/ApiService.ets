@@ -503,6 +503,277 @@ export interface UploadResourceResponse {
   created_at: string;
 }
 
+// ================ 工具模块接口 ================
+
+// 1. 工具箱主页聚合
+export interface DailyQuestionHome {
+  has_answered: boolean;
+  question: string;
+  subject: string;
+  date: string;
+}
+export interface NoteTagCount {
+  name: string;
+  count: number;
+}
+export interface NotesHomeSummary {
+  count: number;
+  tags: NoteTagCount[];
+}
+export interface GpaHomeSummary {
+  current: number;
+  trend: number;
+  semester: string;
+}
+export interface DocumentsHomeSummary {
+  total: number;
+  categories: Record<string, number>;
+}
+export interface BookmarksHomeSummary {
+  total: number;
+}
+export interface ToolboxHomeResponse {
+  daily_question: DailyQuestionHome;
+  notes: NotesHomeSummary;
+  gpa: GpaHomeSummary;
+  documents: DocumentsHomeSummary;
+  bookmarks: BookmarksHomeSummary;
+}
+
+// 2. 每日一问
+export interface DailyAnsweredRecord {
+  selected: string;
+  is_correct: boolean;
+  explanation: string;
+}
+export interface DailyQuestionToday {
+  id: number;
+  subject: string;
+  question: string;
+  options: string[];
+  difficulty: number;
+  date: string;
+  has_answered: boolean;
+  record?: DailyAnsweredRecord;
+}
+export interface SubmitDailyAnswerRequest {
+  question_id: number;
+  selected: string;
+}
+export interface SubmitDailyAnswerData {
+  is_correct: boolean;
+  correct_answer?: string;
+  explanation: string;
+  earned_points?: number;
+  wrong_book_added?: boolean;
+}
+export interface AnswerHistoryItem {
+  id: number;
+  question_id: number;
+  subject: string;
+  selected: string;
+  is_correct: boolean;
+  answered_at: string;
+}
+export interface AnswerCalendarDay {
+  date: string;
+  has_answered: boolean;
+}
+export interface DailyQuestionHistoryResponse {
+  list: AnswerHistoryItem[];
+  calendar: AnswerCalendarDay[];
+}
+
+// 3. 学习笔记
+export interface NoteListItem {
+  id: number;
+  title: string;
+  content_preview: string;
+  tags: string[];
+  is_pinned: boolean;
+  source_type: string;
+  updated_at: string;
+}
+export interface NoteListResponse {
+  total: number;
+  list: NoteListItem[];
+}
+export interface CreateNoteRequest {
+  title: string;
+  content?: string;
+  tags?: string[];
+}
+export interface NoteDetailResponse {
+  id: number;
+  title: string;
+  content: string;
+  tags: string[];
+  is_pinned: boolean;
+  source_type: string;
+  source_id?: number;
+  created_at: string;
+  updated_at: string;
+}
+export interface UpdateNoteRequest {
+  title?: string;
+  content?: string;
+  tags?: string[];
+}
+export interface UpdateNoteResponse {
+  id: number;
+  updated_at: string;
+}
+export interface ExcerptNoteRequest {
+  source_type: string;
+  source_id: number;
+  title: string;
+  content: string;
+  tags?: string[];
+}
+export interface TogglePinRequest {
+  is_pinned: boolean;
+}
+export interface TogglePinResponse {
+  id: number;
+  is_pinned: boolean;
+}
+
+// 4. 绩点计算器
+export interface SemesterItem {
+  id: number;
+  name: string;
+  year: number;
+  course_count: number;
+}
+export interface SemesterListResponse {
+  list: SemesterItem[];
+}
+export interface CreateSemesterRequest {
+  name: string;
+  year: number;
+}
+export interface CourseItem {
+  id: number;
+  name: string;
+  credit: number;
+  score?: number;
+  grade?: string;
+  type: string;
+  gpa: number;
+}
+export interface CourseListResponse {
+  semester: string;
+  list: CourseItem[];
+}
+export interface SaveCourseRequest {
+  id?: number;
+  semester_id: number;
+  name: string;
+  credit: number;
+  score?: number;
+  grade?: string;
+  type: string;
+}
+export interface SaveCourseResponse {
+  id: number;
+  name: string;
+  gpa: number;
+}
+export interface GpaTarget {
+  value: number;
+  gap: number;
+  status: string;
+}
+export interface GpaWarning {
+  course_name: string;
+  score: number;
+  credit: number;
+  message: string;
+}
+export interface GpaCalculateResponse {
+  algorithm: string;
+  current_gpa: number;
+  total_credits: number;
+  targets: Record<string, GpaTarget>;
+  warnings: GpaWarning[];
+  failed_courses: number;
+  failed_credits: number;
+}
+
+// 5. 个人文档库
+export interface DocumentItem {
+  id: number;
+  name: string;
+  file_url: string;
+  file_size: number;
+  file_type: string;
+  category: string;
+  is_offline: boolean;
+  last_opened_at?: string;
+}
+export interface DocumentListResponse {
+  total: number;
+  list: DocumentItem[];
+}
+export interface StorageStatusResponse {
+  used: number;
+  used_display: string;
+  total: number;
+  total_display: string;
+  percentage: number;
+  is_warning: boolean;
+}
+export interface UpdateDocOfflineRequest {
+  is_offline: boolean;
+}
+export interface UpdateDocOfflineResponse {
+  id: number;
+  is_offline: boolean;
+}
+
+// 6. 精选书签
+export interface BookmarkItem {
+  id: number;
+  quote: string;
+  source_title: string;
+  source_url?: string;
+  source_type: string;
+  source_id?: number;
+  anchor?: string;
+  note?: string;
+  color: string;
+  created_at: string;
+}
+export interface BookmarkListResponse {
+  total: number;
+  list: BookmarkItem[];
+}
+export interface CreateBookmarkRequest {
+  quote: string;
+  source_title: string;
+  source_url?: string;
+  source_type: string;
+  source_id?: number;
+  anchor?: string;
+  note?: string;
+  color?: string;
+}
+export interface CreateBookmarkResponse {
+  id: number;
+  color: string;
+  created_at: string;
+}
+export interface UpdateBookmarkRequest {
+  note?: string;
+  color?: string;
+}
+export interface UpdateBookmarkResponse {
+  id: number;
+  note?: string;
+  color: string;
+  updated_at: string;
+}
+
 class ApiService {
   private httpRequest: http.HttpRequest | null = null;
 
@@ -1065,6 +1336,128 @@ class ApiService {
       Logger.error(TAG, `HTTP multipart+fields请求失败: ${url}`, error as Error);
       return { code: 500, message: '文件上传失败', data: null };
     }
+  }
+
+  // ============== 工具模块 HTTP 方法 ==============
+
+  // 1. 工具箱主页聚合
+  async fetchToolboxHome(): Promise<ApiResponse<ToolboxHomeResponse>> {
+    return this.request<ToolboxHomeResponse>('/api/toolbox/home', http.RequestMethod.GET, null, true);
+  }
+
+  // 2. 每日一问
+  async fetchDailyQuestionToday(): Promise<ApiResponse<DailyQuestionToday>> {
+    return this.request<DailyQuestionToday>('/api/daily-question/today', http.RequestMethod.GET, null, true);
+  }
+  async submitDailyAnswer(req: SubmitDailyAnswerRequest): Promise<ApiResponse<SubmitDailyAnswerData>> {
+    return this.request<SubmitDailyAnswerData>('/api/daily-question/answer', http.RequestMethod.POST, req, true);
+  }
+  async fetchDailyQuestionHistory(month: string | null = null, onlyWrong: boolean = false):
+    Promise<ApiResponse<DailyQuestionHistoryResponse>> {
+    const query: Record<string, string | number> = {};
+    if (month) query['month'] = month;
+    if (onlyWrong) query['only_wrong'] = '1';
+    return this.request<DailyQuestionHistoryResponse>(
+      '/api/daily-question/history',
+      http.RequestMethod.GET, null, true,
+      Object.keys(query).length > 0 ? query : null
+    );
+  }
+
+  // 3. 学习笔记
+  async fetchNotes(tag: string | null = null, keyword: string | null = null,
+    limit: number = 20, offset: number = 0): Promise<ApiResponse<NoteListResponse>> {
+    const query: Record<string, string | number> = {};
+    if (tag) query['tag'] = tag;
+    if (keyword) query['keyword'] = keyword;
+    query['limit'] = limit;
+    query['offset'] = offset;
+    return this.request<NoteListResponse>('/api/notes', http.RequestMethod.GET, null, true, query);
+  }
+  async createNote(req: CreateNoteRequest): Promise<ApiResponse<NoteDetailResponse>> {
+    return this.request<NoteDetailResponse>('/api/notes', http.RequestMethod.POST, req, true);
+  }
+  async fetchNoteDetail(id: number): Promise<ApiResponse<NoteDetailResponse>> {
+    return this.request<NoteDetailResponse>(`/api/notes/${id}`, http.RequestMethod.GET, null, true);
+  }
+  async updateNote(id: number, req: UpdateNoteRequest): Promise<ApiResponse<UpdateNoteResponse>> {
+    return this.request<UpdateNoteResponse>(`/api/notes/${id}`, http.RequestMethod.PUT, req, true);
+  }
+  async deleteNote(id: number): Promise<ApiResponse<null>> {
+    return this.request<null>(`/api/notes/${id}`, http.RequestMethod.DELETE, null, true);
+  }
+  async excerptNote(req: ExcerptNoteRequest): Promise<ApiResponse<NoteDetailResponse>> {
+    return this.request<NoteDetailResponse>('/api/notes/excerpt', http.RequestMethod.POST, req, true);
+  }
+  async toggleNotePin(id: number, isPinned: boolean): Promise<ApiResponse<TogglePinResponse>> {
+    const req: TogglePinRequest = { is_pinned: isPinned };
+    return this.request<TogglePinResponse>(`/api/notes/${id}/pin`, http.RequestMethod.PUT, req, true);
+  }
+
+  // 4. 绩点计算器
+  async fetchSemesters(): Promise<ApiResponse<SemesterListResponse>> {
+    return this.request<SemesterListResponse>('/api/gpa/semesters', http.RequestMethod.GET, null, true);
+  }
+  async createSemester(req: CreateSemesterRequest): Promise<ApiResponse<SemesterItem>> {
+    return this.request<SemesterItem>('/api/gpa/semesters', http.RequestMethod.POST, req, true);
+  }
+  async deleteSemester(id: number): Promise<ApiResponse<null>> {
+    return this.request<null>(`/api/gpa/semesters/${id}`, http.RequestMethod.DELETE, null, true);
+  }
+  async fetchCourses(semesterId: number): Promise<ApiResponse<CourseListResponse>> {
+    const query: Record<string, string | number> = {};
+    query['semester_id'] = semesterId;
+    return this.request<CourseListResponse>('/api/gpa/courses', http.RequestMethod.GET, null, true, query);
+  }
+  async saveCourse(req: SaveCourseRequest): Promise<ApiResponse<SaveCourseResponse>> {
+    return this.request<SaveCourseResponse>('/api/gpa/courses', http.RequestMethod.POST, req, true);
+  }
+  async deleteCourse(id: number): Promise<ApiResponse<null>> {
+    return this.request<null>(`/api/gpa/courses/${id}`, http.RequestMethod.DELETE, null, true);
+  }
+  async calculateGpa(algorithm: string = 'standard'): Promise<ApiResponse<GpaCalculateResponse>> {
+    const query: Record<string, string | number> = {};
+    query['algorithm'] = algorithm;
+    return this.request<GpaCalculateResponse>('/api/gpa/calculate', http.RequestMethod.GET, null, true, query);
+  }
+
+  // 5. 个人文档库
+  async fetchDocuments(category: string | null = null,
+    limit: number = 20, offset: number = 0): Promise<ApiResponse<DocumentListResponse>> {
+    const query: Record<string, string | number> = {};
+    if (category) query['category'] = category;
+    query['limit'] = limit;
+    query['offset'] = offset;
+    return this.request<DocumentListResponse>('/api/documents', http.RequestMethod.GET, null, true, query);
+  }
+  async fetchStorageStatus(): Promise<ApiResponse<StorageStatusResponse>> {
+    return this.request<StorageStatusResponse>('/api/documents/storage', http.RequestMethod.GET, null, true);
+  }
+  async updateDocOffline(id: number, isOffline: boolean): Promise<ApiResponse<UpdateDocOfflineResponse>> {
+    const req: UpdateDocOfflineRequest = { is_offline: isOffline };
+    return this.request<UpdateDocOfflineResponse>(`/api/documents/${id}/offline`,
+      http.RequestMethod.PUT, req, true);
+  }
+  async deleteDocument(id: number): Promise<ApiResponse<null>> {
+    return this.request<null>(`/api/documents/${id}`, http.RequestMethod.DELETE, null, true);
+  }
+
+  // 6. 精选书签
+  async fetchBookmarks(color: string | null = null,
+    keyword: string | null = null): Promise<ApiResponse<BookmarkListResponse>> {
+    const query: Record<string, string | number> = {};
+    if (color) query['color'] = color;
+    if (keyword) query['keyword'] = keyword;
+    return this.request<BookmarkListResponse>('/api/bookmarks', http.RequestMethod.GET, null, true, query);
+  }
+  async createBookmark(req: CreateBookmarkRequest): Promise<ApiResponse<CreateBookmarkResponse>> {
+    return this.request<CreateBookmarkResponse>('/api/bookmarks', http.RequestMethod.POST, req, true);
+  }
+  async updateBookmark(id: number, req: UpdateBookmarkRequest): Promise<ApiResponse<UpdateBookmarkResponse>> {
+    return this.request<UpdateBookmarkResponse>(`/api/bookmarks/${id}`, http.RequestMethod.PUT, req, true);
+  }
+  async deleteBookmark(id: number): Promise<ApiResponse<null>> {
+    return this.request<null>(`/api/bookmarks/${id}`, http.RequestMethod.DELETE, null, true);
   }
 
   destroy(): void {
