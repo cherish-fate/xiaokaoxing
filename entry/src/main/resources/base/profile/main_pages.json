@@ -27,6 +27,10 @@
     "pages/NoteEditorPage",
     "pages/GpaPage",
     "pages/DocumentListPage",
-    "pages/BookmarkListPage"
+    "pages/BookmarkListPage",
+    "pages/MePage",
+    "pages/MeEditPage",
+    "pages/NotificationSettingsPage",
+    "pages/AboutPage"
   ]
 }

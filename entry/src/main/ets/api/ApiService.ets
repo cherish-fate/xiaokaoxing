@@ -774,6 +774,106 @@ export interface UpdateBookmarkResponse {
   updated_at: string;
 }
 
+// ============== 我的页模块接口 ==============
+
+// 1. 用户信息
+export interface UserMeInfo {
+  id: number;
+  nickname: string;
+  email: string;
+  school_name: string;
+  major_id: number;
+  major_name: string;
+  avatar_url: string | null;
+  created_at: string;
+}
+
+export interface UpdateUserMeRequest {
+  nickname?: string;
+  school_name?: string;
+  major_id?: number;
+  avatar_url?: string | null;
+  old_password?: string;
+  new_password?: string;
+  confirm_new_password?: string;
+}
+
+// 2. 聚合统计
+export interface CheckinStatsSummary {
+  continuous_days: number;
+  total_days: number;
+  rank: number;
+}
+export interface LearningStatsSummary {
+  notes_count: number;
+  bookmarks_count: number;
+  documents_count: number;
+  current_gpa: number;
+  daily_question_count: number;
+  exam_subjects_count: number;
+}
+export interface MyContentCounts {
+  uploads_count: number;
+  votes_count: number;
+  submissions_count: number;
+  teams_count: number;
+}
+export interface UserStatsAggregate {
+  checkin: CheckinStatsSummary;
+  learning: LearningStatsSummary;
+  my_content: MyContentCounts;
+}
+
+// 3. 学习数据概览（独立接口）
+export interface LearningStatsResponse {
+  notes_count: number;
+  bookmarks_count: number;
+  documents_count: number;
+  current_gpa: number;
+  daily_question_count: number;
+  exam_subjects_count: number;
+}
+
+// 4. 我的小队
+export interface MyTeamItem {
+  id: number;
+  name: string;
+  subject: string;
+  role: string;
+  member_count: number;
+  max_members: number;
+  checkin_rate: number;
+}
+export interface MyTeamsListResponse {
+  list: MyTeamItem[];
+}
+
+// 5. 通知设置
+export interface NotificationSettingsResponse {
+  exam_reminder: boolean;
+  checkin_reminder: boolean;
+}
+export interface UpdateNotificationSettingsRequest {
+  exam_reminder?: boolean;
+  checkin_reminder?: boolean;
+}
+
+// 6. 关于信息
+export interface AboutInfoResponse {
+  version: string;
+  app_name: string;
+  description: string;
+  team?: string;
+  website?: string;
+  support_email?: string;
+  privacy_url?: string;
+  terms_url?: string;
+  copyright?: string;
+}
+
+// 7. 上传记录（已有接口但补充类型）
+// MyUploadItem / MyUploadListResponse 已在上方社区模块定义
+
 class ApiService {
   private httpRequest: http.HttpRequest | null = null;
 
@@ -1458,6 +1558,50 @@ class ApiService {
   }
   async deleteBookmark(id: number): Promise<ApiResponse<null>> {
     return this.request<null>(`/api/bookmarks/${id}`, http.RequestMethod.DELETE, null, true);
+  }
+
+  // ============== 我的页模块 HTTP 方法 ==============
+
+  // 1. 用户信息
+  async fetchUserMe(): Promise<ApiResponse<UserMeInfo>> {
+    return this.request<UserMeInfo>('/api/users/me', http.RequestMethod.GET, null, true);
+  }
+  async updateUserMe(req: UpdateUserMeRequest): Promise<ApiResponse<UserMeInfo>> {
+    return this.request<UserMeInfo>('/api/users/me', http.RequestMethod.PUT, req, true);
+  }
+
+  // 2. 聚合统计（打卡 + 学习数据 + 我的内容数量）
+  async fetchUserStats(): Promise<ApiResponse<UserStatsAggregate>> {
+    return this.request<UserStatsAggregate>('/api/users/me/stats', http.RequestMethod.GET, null, true);
+  }
+
+  // 3. 学习数据概览（独立接口）
+  async fetchLearningStats(): Promise<ApiResponse<LearningStatsResponse>> {
+    return this.request<LearningStatsResponse>('/api/users/me/learning-stats', http.RequestMethod.GET, null, true);
+  }
+
+  // 4. 我的小队
+  async fetchMyTeams(): Promise<ApiResponse<MyTeamsListResponse>> {
+    return this.request<MyTeamsListResponse>('/api/teams/my-teams', http.RequestMethod.GET, null, true);
+  }
+
+  // 5. 通知设置
+  async fetchNotificationSettings(): Promise<ApiResponse<NotificationSettingsResponse>> {
+    return this.request<NotificationSettingsResponse>('/api/settings/notifications', http.RequestMethod.GET, null, true);
+  }
+  async updateNotificationSettings(req: UpdateNotificationSettingsRequest):
+    Promise<ApiResponse<NotificationSettingsResponse>> {
+    return this.request<NotificationSettingsResponse>('/api/settings/notifications', http.RequestMethod.PUT, req, true);
+  }
+
+  // 6. 关于信息
+  async fetchAboutInfo(): Promise<ApiResponse<AboutInfoResponse>> {
+    return this.request<AboutInfoResponse>('/api/settings/about', http.RequestMethod.GET, null, false);
+  }
+
+  // 7. 退出登录
+  async logout(): Promise<ApiResponse<null>> {
+    return this.request<null>('/api/auth/logout', http.RequestMethod.POST, null, true);
   }
 
   destroy(): void {

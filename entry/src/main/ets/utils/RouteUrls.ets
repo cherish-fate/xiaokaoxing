@@ -28,4 +28,8 @@ export class RouteUrls {
   static readonly GPA: string = 'pages/GpaPage';
   static readonly DOCUMENT_LIST: string = 'pages/DocumentListPage';
   static readonly BOOKMARK_LIST: string = 'pages/BookmarkListPage';
+  static readonly ME: string = 'pages/MePage';
+  static readonly ME_EDIT: string = 'pages/MeEditPage';
+  static readonly NOTIFICATION_SETTINGS: string = 'pages/NotificationSettingsPage';
+  static readonly ABOUT: string = 'pages/AboutPage';
 }

@@ -26,7 +26,7 @@ export struct BottomTabBar {
     { icon:$r('app.media.home_beikao'), label: AppText.TAB_PREP, index: TabIndex.PREP, url: RouteUrls.TASK_PREP },
     { icon: $r('app.media.home_community'), label: AppText.TAB_COMMUNITY, index: TabIndex.COMMUNITY, url: RouteUrls.COMMUNITY },
     { icon: $r('app.media.home_tool'), label: AppText.TAB_TOOL, index: TabIndex.TOOL, url: RouteUrls.TOOL },
-    { icon: $r('app.media.home_mine'), label: AppText.TAB_ME, index: TabIndex.ME, url: '' }
+    { icon: $r('app.media.home_mine'), label: AppText.TAB_ME, index: TabIndex.ME, url: RouteUrls.ME }
   ];
 
   build() {
