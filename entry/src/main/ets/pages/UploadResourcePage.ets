@@ -4,10 +4,10 @@ import { Logger } from '../utils/Logger';
 import { RouterUtil } from '../utils/RouterUtil';
 import { sharedResourceRepository } from '../repository/SharedResourceRepository';
 import {
-  MyUploadListModel,
   MyUploadItemModel,
   UploadResourceParams
 } from '../model/SharedResourceModel';
+import { LoadingView } from '../components/StateViews';
 
 const TAG = 'UploadResourcePage';
 const SUBJECT_LIST = ['高等数学', '大学英语', '线性代数', '数据结构', '大学物理', '计算机组成原理'];
@@ -32,6 +32,12 @@ struct UploadResourcePage {
 
   async aboutToAppear(): Promise<void> {
     this.pageState = 'LOADING';
+    // 读取路由参数中的初始 tab（1 = 我的上传）
+    const params = RouterUtil.getParams();
+    if (params && params['tab'] !== undefined) {
+      const tabVal: number = Number(params['tab']);
+      if (tabVal === 1) this.tab = 1;
+    }
     await this.loadUploads();
     this.pageState = 'CONTENT';
   }
@@ -99,6 +105,22 @@ struct UploadResourcePage {
     this.clearForm();
     await this.loadUploads();
     this.tab = 1;
+  }
+@Builder
+  LoadingView() {
+    Column() {
+      LoadingProgress()
+        .width(32)
+        .height(32)
+        .color(AppColors.PRIMARY)
+        .margin({ bottom: AppSize.PADDING_MD });
+      Text('正在加载备考中心...')
+        .fontSize(14)
+        .fontColor(AppColors.TEXT_SECONDARY);
+    }
+    .width('100%')
+    .height('100%')
+    .justifyContent(FlexAlign.Center);
   }
 
   @Builder
@@ -566,9 +588,7 @@ struct UploadResourcePage {
     Column() {
       this.Header()
       if (this.pageState === 'LOADING') {
-        Column() { LoadingProgress().color(AppColors.PRIMARY) }
-          .layoutWeight(1).width('100%').justifyContent(FlexAlign.Center)
-          .backgroundColor(AppColors.BG)
+          this.LoadingView()
       } else {
         Column() {
           // Tab切换栏（保留现有）

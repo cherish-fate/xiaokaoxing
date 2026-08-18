@@ -60,20 +60,17 @@ export struct ExamScheduleSection {
   @Builder
   EmptyHint() {
     Row() {
-      Image($r('app.media.home_exam'))
-        .width(20)
-      Text('  暂无考试，去添加')
+      Text('暂无考试')
         .fontSize(14)
         .fontColor(AppColors.TEXT_HINT)
+
     }
     .width('100%')
-    .padding(16)
+    .padding(20)
     .backgroundColor(AppColors.CARD)
     .borderRadius(AppSize.RADIUS_MD)
+    .justifyContent(FlexAlign.Center)
     .shadow({ radius: 6, color: 'rgba(0,0,0,0.04)', offsetY: 2 })
-    .onClick(() => {
-      RouterUtil.push(RouteUrls.EXAM_ADD);
-    })
   }
 
   @Builder

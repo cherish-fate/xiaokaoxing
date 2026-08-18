@@ -97,7 +97,6 @@ struct CheckinPage {
       ToastUtil.show(res.message || '打卡失败');
       return;
     }
-    ToastUtil.show(res.message || '打卡成功！');
     this.selSubjects = [];
     this.selDuration = '';
     this.selTags = [];
@@ -152,11 +151,9 @@ struct CheckinPage {
   @Builder
   StatusCard() {
     Row({ space: 14 }) {
-      Text(this.today.hasCheckedIn ? '🎊' : '🔥')
-        .fontSize(48)
-        .width(72)
-        .height(72)
-        .textAlign(TextAlign.Center)
+      Image(this.today.hasCheckedIn ? $r('app.media.community_celebrate') : $r('app.media.community_flame'))
+        .width(40)
+        .height(40)
 
       Column({ space: 6 }) {
         Text(this.today.hasCheckedIn ? '已打卡' : '今日还未打卡')
@@ -164,7 +161,7 @@ struct CheckinPage {
           .fontWeight(FontWeight.Bold)
           .fontColor(Color.White)
         Text(this.today.hasCheckedIn
-          ? `🎊 连续打卡${this.today.continuousDays}天，继续保持！`
+          ? `连续打卡${this.today.continuousDays}天，继续保持！`
           : `已连续打卡${this.today.continuousDays}天，再接再厉！`)
           .fontSize(13)
           .fontColor('rgba(255,255,255,0.85)')
@@ -468,11 +465,20 @@ struct CheckinPage {
   }
 
   @Builder
-  Loading() {
+  LoadingView() {
     Column() {
-      LoadingProgress().color(AppColors.PRIMARY)
-    }.width('100%').height('100%').justifyContent(FlexAlign.Center)
-      .backgroundColor(AppColors.BG)
+      LoadingProgress()
+        .width(32)
+        .height(32)
+        .color(AppColors.PRIMARY)
+        .margin({ bottom: AppSize.PADDING_MD });
+      Text('加载中...')
+        .fontSize(14)
+        .fontColor(AppColors.TEXT_SECONDARY);
+    }
+    .width('100%')
+    .height('100%')
+    .justifyContent(FlexAlign.Center);
   }
 
   @Builder
@@ -505,7 +511,7 @@ struct CheckinPage {
       this.Header()
 
       if (this.pageState === 'LOADING') {
-        this.Loading()
+        this.LoadingView()
       } else if (this.pageState === 'ERROR') {
         this.ErrorView()
       } else {

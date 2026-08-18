@@ -76,14 +76,23 @@ struct GpaPage {
 
   private async loadCoursesAndCalculate(semesterId: number): Promise<void> {
     const courseRes = await gpaRepository.loadCourses(semesterId);
+    let courses: CourseModel[] = this.model.courses;
+    let semesterName: string = this.model.currentSemesterName;
     if (courseRes.success && courseRes.data) {
-      this.model.updateCourses(courseRes.data.semesterName, courseRes.data.courses);
+      courses = courseRes.data.courses;
+      semesterName = courseRes.data.semesterName;
     }
 
     const calcRes = await gpaRepository.calculateGpa(this.selectedAlgorithm);
+    let calc: GpaCalculateModel = this.model.calculate;
     if (calcRes.success && calcRes.data) {
-      this.model.updateCalculate(calcRes.data);
+      calc = calcRes.data;
     }
+
+    // 创建新对象确保 @State 引用变化，触发 ForEach 等 UI 立即刷新
+    this.model = new GpaPageModel(
+      this.model.semesters, this.model.currentSemesterId, semesterName, courses, calc
+    );
   }
 
   private async onRetry(): Promise<void> {
@@ -94,9 +103,6 @@ struct GpaPage {
     RouterUtil.back();
   }
 
-  private onSettingsTap(): void {
-    ToastUtil.show('设置功能即将上线');
-  }
 
   private async onSemesterTap(semester: SemesterModel): Promise<void> {
     if (semester.id === this.model.currentSemesterId) return;
@@ -353,17 +359,13 @@ struct GpaPage {
   @Builder
   Header() {
     Row() {
-      Row() {
-        Text('‹')
-          .fontSize(24)
-          .fontWeight(FontWeight.Medium)
-          .fontColor(AppColors.TEXT_PRIMARY)
-      }
-      .width(40)
-      .height(40)
-      .borderRadius(12)
-      .justifyContent(FlexAlign.Center)
-      .onClick(() => this.onBack())
+      Image($r('app.media.examDetail_back'))
+        .width(40)
+        .height(40)
+        .padding(10)
+        .backgroundColor(AppColors.CARD)
+        .borderRadius(20)
+        .onClick(() => this.onBack())
 
       Text('绩点计算器')
         .fontSize(17)
@@ -372,16 +374,6 @@ struct GpaPage {
         .layoutWeight(1)
         .textAlign(TextAlign.Center)
 
-      Row() {
-        Text('⚙')
-          .fontSize(18)
-          .fontColor(AppColors.TEXT_SECONDARY)
-      }
-      .width(40)
-      .height(40)
-      .borderRadius(12)
-      .justifyContent(FlexAlign.Center)
-      .onClick(() => this.onSettingsTap())
     }
     .width('100%')
     .height(56)

@@ -155,10 +155,8 @@ struct NoteListPage {
         this.model.list.filter(n => n.id !== note.id),
         this.model.total - 1
       );
-      if (this.model.list.length === 0 && this.selectedTag === '全部') {
-        this.tagList = [];
-        this.loadTagCounts();
-      }
+      // 删除后立即刷新标签数量，确保标签徽标和总数同步更新
+      this.loadTagCounts();
     } catch (e) {
       ToastUtil.show('删除失败，请稍后重试');
     } finally {
@@ -362,17 +360,13 @@ struct NoteListPage {
   Header() {
     Column() {
       Row() {
-        Row() {
-          Text('‹')
-            .fontSize(24)
-            .fontWeight(FontWeight.Medium)
-            .fontColor(AppColors.TEXT_PRIMARY)
-        }
-        .width(40)
-        .height(40)
-        .borderRadius(12)
-        .justifyContent(FlexAlign.Center)
-        .onClick(() => this.onBack())
+        Image($r('app.media.examDetail_back'))
+          .width(40)
+          .height(40)
+          .padding(10)
+          .backgroundColor(AppColors.CARD)
+          .borderRadius(20)
+          .onClick(() => this.onBack())
 
         Text('学习笔记')
           .fontSize(17)

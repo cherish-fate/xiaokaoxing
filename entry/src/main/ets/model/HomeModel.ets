@@ -35,7 +35,7 @@ export class HomeModel {
     const greeting = new GreetingModel(user);
     const countdown = new ExamCountdownModel(false, '', '', '', '', 0, '');
     const progress = new TodayProgressModel(0, 0, 0);
-    const tasks = new TodayTaskListModel(false, 0, 0, [], '今日暂无任务，去备考页添加学习计划吧');
+    const tasks = new TodayTaskListModel(false, 0, 0, [], '今日暂无任务，开始添加学习计划吧');
     return new HomeModel(user, greeting, countdown, progress, [], tasks, []);
   }
 

@@ -1,4 +1,5 @@
 import http from '@ohos.net.http';
+import util from '@ohos.util';
 import { Logger } from '../utils/Logger';
 import { StorageUtil } from '../utils/StorageUtil';
 
@@ -244,6 +245,7 @@ export interface CheckinStats {
   total_days: number;
   continuous_days: number;
   rank: number;
+  checked_week_days?: number[];
 }
 export interface HotVote {
   id: number;
@@ -252,6 +254,7 @@ export interface HotVote {
   vote_count: number;
   confidence: number;
   stars: number;
+  total_users?: number;
 }
 export interface HotTeam {
   id: number;
@@ -554,6 +557,7 @@ export interface DailyQuestionToday {
   difficulty: number;
   date: string;
   has_answered: boolean;
+  streak?: number;
   record?: DailyAnsweredRecord;
 }
 export interface SubmitDailyAnswerRequest {
@@ -566,6 +570,7 @@ export interface SubmitDailyAnswerData {
   explanation: string;
   earned_points?: number;
   wrong_book_added?: boolean;
+  streak?: number;
 }
 export interface AnswerHistoryItem {
   id: number;
@@ -876,6 +881,7 @@ export interface AboutInfoResponse {
 
 class ApiService {
   private httpRequest: http.HttpRequest | null = null;
+  private streamReq: http.HttpRequest | undefined = undefined;
 
   getBaseUrl(): string {
     return BASE_URL;
@@ -1111,57 +1117,155 @@ class ApiService {
     onDone: (conversationId: string, fullContent: string) => void,
     onError: (msg: string) => void
   ): Promise<void> {
-    if (!this.httpRequest) {
-      this.httpRequest = http.createHttp();
-    }
+    this.streamReq = http.createHttp();
     const url = `${BASE_URL}/api/ai/chat`;
     const token = await this.getToken();
     const headers: Record<string, string> = {};
     headers['Content-Type'] = 'application/json';
     headers['Accept'] = 'text/event-stream';
-    headers['Authorization'] = token ? `Bearer ${token}` : '';
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    const decoder = util.TextDecoder.create('utf-8');
+    let byteBuffer: Uint8Array = new Uint8Array(0);
+    let fullContent: string = '';
+    let conversationId: string = '';
+    let finished: boolean = false;
+    let receivedViaStream: boolean = false;
+
+    const handleLine = (line: string): void => {
+      const trimmed: string = line.trim();
+      if (!trimmed.startsWith('data:')) {
+        return;
+      }
+      const payload: string = trimmed.substring(5).trim();
+      if (!payload) {
+        return;
+      }
+      try {
+        const obj: SseChunkMessage = JSON.parse(payload) as SseChunkMessage;
+        if (obj.type === 'chunk') {
+          const chunk: string = obj.content || '';
+          if (chunk) {
+            fullContent += chunk;
+            onChunk(chunk);
+          }
+        } else if (obj.type === 'done') {
+          finished = true;
+          conversationId = obj.conversation_id || '';
+          if (obj.full_content && obj.full_content.length > fullContent.length) {
+            fullContent = obj.full_content;
+          }
+          onDone(conversationId, fullContent);
+        } else if (obj.type === 'error') {
+          finished = true;
+          onError(obj.message || 'AI 服务错误');
+        }
+      } catch (e) {
+        Logger.warn(TAG, `解析SSE消息失败: ${payload}`);
+      }
+    };
+
+    const parseSseString = (raw: string): void => {
+      const lines: string[] = raw.split(/\r?\n/);
+      for (const line of lines) {
+        handleLine(line);
+      }
+    };
+
+    const onDataReceive = (data: ArrayBuffer) => {
+      try {
+        receivedViaStream = true;
+        const incoming: Uint8Array = new Uint8Array(data);
+        const merged: Uint8Array = new Uint8Array(byteBuffer.length + incoming.length);
+        merged.set(byteBuffer, 0);
+        merged.set(incoming, byteBuffer.length);
+        byteBuffer = merged;
+        let nlIdx: number = byteBuffer.indexOf(0x0A);
+        while (nlIdx >= 0) {
+          const lineBytes: Uint8Array = byteBuffer.subarray(0, nlIdx);
+          handleLine(decoder.decodeToString(lineBytes));
+          byteBuffer = new Uint8Array(byteBuffer.subarray(nlIdx + 1));
+          nlIdx = byteBuffer.indexOf(0x0A);
+        }
+      } catch (e) {
+        Logger.error(TAG, 'dataReceive处理失败', e as Error);
+      }
+    };
+
+    const onDataEnd = () => {
+      try {
+        if (byteBuffer.length > 0) {
+          handleLine(decoder.decodeToString(byteBuffer));
+          byteBuffer = new Uint8Array(0);
+        }
+        if (!finished) {
+          finished = true;
+          if (fullContent) {
+            onDone(conversationId, fullContent);
+          } else {
+            onError('AI 服务无响应，请稍后重试');
+          }
+        }
+      } catch (e) {
+        Logger.error(TAG, 'dataEnd处理失败', e as Error);
+      }
+    };
+
+    this.streamReq.on('dataReceive', onDataReceive);
+    this.streamReq.on('dataEnd', onDataEnd);
+
     try {
-      const response = await this.httpRequest.request(url, {
+      const response = await this.streamReq.request(url, {
         method: http.RequestMethod.POST,
         header: headers,
         extraData: JSON.stringify(req),
         connectTimeout: 30000,
-        readTimeout: 30000
+        readTimeout: 120000
       });
-      const body = response.result as string;
-      const lines = body.split('\n');
-      let fullContent = '';
-      let conversationId = '';
-      for (const line of lines) {
-        const trimmed = line.trim();
-        if (trimmed.startsWith('data:')) {
-          const payload = trimmed.substring(5).trim();
-          if (!payload) continue;
+
+      if (!finished && !receivedViaStream && response.result) {
+        const resultStr: string = typeof response.result === 'string'
+          ? response.result
+          : decoder.decodeToString(new Uint8Array(response.result as ArrayBuffer));
+        if (resultStr && resultStr.includes('data:')) {
+          parseSseString(resultStr);
+        } else if (resultStr) {
           try {
-            const obj: SseChunkMessage = JSON.parse(payload) as SseChunkMessage;
-            if (obj.type === 'chunk') {
-              fullContent += obj.content || '';
-              onChunk(obj.content || '');
-            } else if (obj.type === 'done') {
-              conversationId = obj.conversation_id || '';
-              if (obj.full_content) {
-                fullContent = obj.full_content;
-              }
-              onDone(conversationId, fullContent);
-            } else if (obj.type === 'error') {
-              onError(obj.message || 'AI 服务错误');
+            const errResp: ApiResponse<Object> = JSON.parse(resultStr) as ApiResponse<Object>;
+            if (errResp.code && errResp.code !== 200 && errResp.message) {
+              finished = true;
+              onError(errResp.message);
             }
-          } catch (e) {
-            Logger.warn(TAG, `解析SSE消息失败: ${payload}`);
+          } catch {
+            // not a JSON error response
+          }
+        }
+        if (!finished) {
+          finished = true;
+          if (fullContent) {
+            onDone(conversationId, fullContent);
+          } else {
+            onError('AI 服务无响应，请稍后重试');
           }
         }
       }
-      if (conversationId === '' && fullContent !== '') {
-        onDone('', fullContent);
+    } catch (e) {
+      Logger.error(TAG, 'AI chat请求失败', e as Error);
+      if (!finished) {
+        finished = true;
+        onError('AI 服务暂时不可用，请稍后重试');
       }
-    } catch (error) {
-      Logger.error(TAG, `AI chat请求失败`, error as Error);
-      onError('AI 服务暂时不可用，请稍后重试');
+    } finally {
+      try {
+        this.streamReq.off('dataReceive', onDataReceive);
+        this.streamReq.off('dataEnd', onDataEnd);
+        this.streamReq.destroy();
+      } catch (e) {
+        // ignore cleanup errors
+      }
+      this.streamReq = undefined;
     }
   }
 

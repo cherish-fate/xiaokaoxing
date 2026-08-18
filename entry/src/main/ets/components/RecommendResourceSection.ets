@@ -19,13 +19,13 @@ export struct RecommendResourceSection {
               this.ResourceCard(item)
             }, (item: ResourceModel) => `${item.id}`)
           }
-          .padding({ left: 20, right: 20 })
         }
         .scrollBar(BarState.Off)
         .scrollable(ScrollDirection.Horizontal)
         .edgeEffect(EdgeEffect.Spring)
       }
     }
+    .padding({ left: 20, right: 20 })
     .width('100%')
   }
 
@@ -54,7 +54,6 @@ export struct RecommendResourceSection {
       })
     }
     .width('100%')
-    .padding({ left: 20, right: 20 })
   }
 
   @Builder
@@ -67,8 +66,8 @@ export struct RecommendResourceSection {
     .width('100%')
     .padding(20)
     .justifyContent(FlexAlign.Center)
-    .margin({ left: 20, right: 20 })
     .backgroundColor(AppColors.CARD)
+    .shadow({ radius: 6, color: 'rgba(0,0,0,0.04)', offsetY: 2 })
     .borderRadius(AppSize.RADIUS_MD)
   }
 

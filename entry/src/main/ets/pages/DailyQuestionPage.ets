@@ -1,5 +1,6 @@
 import { AppColors } from '../utils/Constants';
 import { ToastUtil } from '../utils/ToastUtil';
+import { DateUtil } from '../utils/DateUtil';
 import { DailyQuestionModel, DailyQuestionResultModel } from '../model/DailyQuestionModel';
 import { DailyAnsweredRecord } from '../api/ApiService';
 import { dailyQuestionRepository } from '../repository/DailyQuestionRepository';
@@ -49,7 +50,8 @@ struct DailyQuestionPage {
         'subject': this.model.subject,
         'question': this.model.question,
         'options': optionsStr,
-        'difficulty': String(this.model.difficulty)
+        'difficulty': String(this.model.difficulty),
+        'streak': String(this.model.streak)
       };
       this.pageState = 'CONTENT';
       setTimeout(() => {
@@ -104,7 +106,8 @@ struct DailyQuestionPage {
       'subject': this.model.subject,
       'question': this.model.question,
       'options': optionsStr,
-      'difficulty': String(this.model.difficulty)
+      'difficulty': String(this.model.difficulty),
+      'streak': String(result.streak)
     };
     RouterUtil.pushWithParams(RouteUrls.DAILY_QUESTION_RESULT, params);
   }
@@ -113,9 +116,6 @@ struct DailyQuestionPage {
     RouterUtil.back();
   }
 
-  private onChatTap(): void {
-    ToastUtil.show('AI 助教功能即将上线');
-  }
 
   build() {
     Column() {
@@ -165,25 +165,20 @@ struct DailyQuestionPage {
   Header() {
     Column() {
       Row() {
-        Row() {
-          Text('‹')
-            .fontSize(24)
-            .fontColor(Color.White)
-            .fontWeight(FontWeight.Medium)
-        }
-        .width(40)
-        .height(40)
-        .backgroundColor('rgba(255,255,255,0.15)')
-        .borderRadius(12)
-        .justifyContent(FlexAlign.Center)
-        .onClick(() => this.onBack())
+          Image($r('app.media.examDetail_back'))
+            .width(40)
+            .height(40)
+            .padding(10)
+            .backgroundColor(AppColors.CARD)
+            .borderRadius(20)
+            .onClick(() => this.onBack())
 
         Blank()
 
         Row({ space: 6 }) {
           Text('🔥')
             .fontSize(14)
-          Text('连续答题 7 天')
+          Text(`连续答题 ${this.model.streak} 天`)
             .fontSize(12)
             .fontWeight(FontWeight.Bold)
             .fontColor(Color.White)
@@ -196,7 +191,7 @@ struct DailyQuestionPage {
       .height(44)
 
       Row({ space: 6 }) {
-        Text('📅 2026年8月13日')
+        Text(DateUtil.todayChinese())
           .fontSize(12)
           .fontColor('rgba(255,255,255,0.85)')
           .fontWeight(FontWeight.Medium)
@@ -353,19 +348,6 @@ struct DailyQuestionPage {
   @Builder
   FooterBar() {
     Row({ space: 10 }) {
-      Row() {
-        Text('💬')
-          .fontSize(18)
-      }
-      .width(50)
-      .height(50)
-      .backgroundColor(Color.White)
-      .borderRadius(16)
-      .border({ width: 1.5, color: 'rgba(0,0,0,0.06)' })
-      .justifyContent(FlexAlign.Center)
-      .shadow({ radius: 12, color: 'rgba(0,0,0,0.04)' })
-      .onClick(() => this.onChatTap())
-
       Row({ space: 10 }) {
         Text('确认提交')
           .fontSize(15)

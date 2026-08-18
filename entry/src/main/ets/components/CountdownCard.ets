@@ -125,20 +125,9 @@ export struct CountdownCard {
     Column({ space: 12 }) {
       Text('📝')
         .fontSize(40)
-      Text('暂无考试，去添加')
+      Text('暂无考试，请添加')
         .fontSize(15)
         .fontColor(Color.White)
-      Button('+ 添加考试')
-        .height(36)
-        .padding({ left: 20, right: 20 })
-        .backgroundColor(Color.White)
-        .fontColor(AppColors.PRIMARY)
-        .fontSize(14)
-        .borderRadius(18)
-        .onClick(() => {
-          this.onAddExam();
-          RouterUtil.push(RouteUrls.EXAM_ADD);
-        })
     }
     .width('100%')
     .alignItems(HorizontalAlign.Center)

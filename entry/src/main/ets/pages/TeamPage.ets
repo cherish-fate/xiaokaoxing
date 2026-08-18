@@ -40,6 +40,7 @@ struct TeamPage {
   @State createDesc: string = '';
   @State createNeedApproval: boolean = true;
   @State isRefreshing: boolean = false;
+  @State isRecommendLoading: boolean = false;
 
   async aboutToAppear(): Promise<void> {
     this.pageState = 'LOADING';
@@ -66,6 +67,23 @@ struct TeamPage {
     this.isRefreshing = true;
     await this.load();
     this.isRefreshing = false;
+  }
+
+  private async loadRecommendedOnly(): Promise<void> {
+    this.isRecommendLoading = true;
+    const res = await teamRepository.loadTeams(this.selSubject === '全部' ? undefined : this.selSubject);
+    if (res.code === 401) {
+      this.isRecommendLoading = false;
+      ToastUtil.show('登录已过期，请重新登录');
+      setTimeout(() => RouterUtil.toLogin(), 800);
+      return;
+    }
+    if (res.success && res.data) {
+      this.data = new TeamListModel(this.data.myTeams, res.data.recommendedTeams);
+    } else {
+      ToastUtil.show(res.message || '加载失败');
+    }
+    this.isRecommendLoading = false;
   }
 
   private async doCreate() {
@@ -105,7 +123,6 @@ struct TeamPage {
       return;
     }
     const res = await teamRepository.joinTeam(t.id);
-    ToastUtil.show(res.message || (res.success ? '操作成功' : '操作失败'));
     if (res.success) {
       await this.load();
     }
@@ -219,9 +236,7 @@ struct TeamPage {
           .fontSize(14)
           .fontColor(AppColors.PRIMARY)
           .onClick(() => {
-            if (this.data.myTeams.length > 0) {
               RouterUtil.push(RouteUrls.COMMUNITY_TEAM_DETAIL, { "id": this.data.myTeams[0].id });
-            }
           })
       }
       .width('100%')
@@ -432,27 +447,39 @@ struct TeamPage {
         }
         .layoutWeight(1)
 
-        Text('换一批')
-          .fontSize(14)
-          .fontColor(AppColors.PRIMARY)
-          .onClick(async () => {
-            this.pageState = 'LOADING';
-            await this.load();
-          })
+        Row({ space: 4 }) {
+          LoadingProgress()
+            .width(14)
+            .height(14)
+            .color(AppColors.PRIMARY)
+            .visibility(this.isRecommendLoading ? Visibility.Visible : Visibility.None)
+          Text('换一批')
+            .fontSize(14)
+            .fontColor(this.isRecommendLoading ? AppColors.TEXT_HINT : AppColors.PRIMARY)
+            .onClick(async () => {
+              if (!this.isRecommendLoading) {
+                await this.loadRecommendedOnly();
+              }
+            })
+        }
       }
       .width('100%')
 
-
-      if (this.data.recommendedTeams.length === 0) {
+      if (this.isRecommendLoading) {
+        Column({ space: 12 }) {
+          ForEach([1, 2], (_: number) => {
+            this.RecommendSkeletonCard()
+          }, (i: number) => `rec-skeleton-${i}`);
+        }
+        .width('100%');
+      } else if (this.data.recommendedTeams.length === 0) {
         this.EmptyRecommended()
-
       } else {
         Column({ space: 12 }) {
           ForEach(this.data.recommendedTeams, (t: TeamItemModel) => {
             this.RecommendTeamCard(t)
           })
         }
-        
       }
     }
     .width('100%')
@@ -464,6 +491,46 @@ struct TeamPage {
     })
     .backgroundColor(Color.White)
     .borderRadius(AppSize.RADIUS_LG)
+  }
+
+  @Builder
+  RecommendSkeletonCard() {
+    Column({ space: 14 }) {
+      Row({ space: 12 }) {
+        Column()
+          .width(52)
+          .height(52)
+          .borderRadius(14)
+          .backgroundColor(AppColors.BG);
+        Column({ space: 6 }) {
+          Row()
+            .width('70%')
+            .height(16)
+            .borderRadius(4)
+            .backgroundColor(AppColors.BG);
+          Row()
+            .width('50%')
+            .height(12)
+            .borderRadius(4)
+            .backgroundColor(AppColors.BG);
+        }
+        .layoutWeight(1);
+      }
+      .width('100%')
+      Column()
+        .width('100%')
+        .height(1)
+        .backgroundColor(AppColors.DIVIDER);
+      Row()
+        .width('60%')
+        .height(14)
+        .borderRadius(4)
+        .backgroundColor(AppColors.BG);
+    }
+    .width('100%')
+    .padding(AppSize.PADDING_MD)
+    .backgroundColor('#F8FAFC')
+    .borderRadius(16)
   }
 
   @Builder

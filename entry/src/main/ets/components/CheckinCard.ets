@@ -7,7 +7,9 @@ import { RouteUrls } from '../utils/RouteUrls';
 interface WeekDay {
   label: string;
   date: number;
+  dayIndex: number;
   isToday: boolean;
+  isPast: boolean;
 }
 
 @Component
@@ -26,10 +28,59 @@ export struct CheckinCard {
       result.push({
         label: days[i],
         date: d.getDate(),
-        isToday: i === dayOfWeek
+        dayIndex: i,
+        isToday: i === dayOfWeek,
+        isPast: i < dayOfWeek
       });
     }
     return result;
+  }
+
+  private isDayChecked(day: WeekDay): boolean {
+    if (day.isToday) {
+      return this.todayModel.hasCheckedIn;
+    }
+    if (day.isPast) {
+      return this.checkinStats.checkedWeekDays.indexOf(day.dayIndex) >= 0;
+    }
+    return false;
+  }
+
+  private getDayBackgroundColor(day: WeekDay): ResourceColor {
+    if (day.isToday && this.todayModel.hasCheckedIn) {
+      return AppColors.PRIMARY;
+    }
+    if (!day.isToday && day.isPast && this.isDayChecked(day)) {
+      return AppColors.PRIMARY;
+    }
+    return Color.Transparent;
+  }
+
+  private getDayBorderColor(day: WeekDay): ResourceColor {
+    if (day.isToday && !this.todayModel.hasCheckedIn) {
+      return AppColors.PRIMARY;
+    }
+    return Color.Transparent;
+  }
+
+  private getDayTextColor(day: WeekDay): ResourceColor {
+    if (day.isToday && this.todayModel.hasCheckedIn) {
+      return Color.White;
+    }
+    if (!day.isToday && day.isPast && this.isDayChecked(day)) {
+      return Color.White;
+    }
+    if (day.isToday && !this.todayModel.hasCheckedIn) {
+      return AppColors.PRIMARY;
+    }
+    return AppColors.TEXT_SECONDARY;
+  }
+
+  private getDayFontWeight(day: WeekDay): number {
+    if (day.isToday) {
+      return FontWeight.Bold;
+    }
+    return FontWeight.Medium;
   }
 
   build() {
@@ -73,14 +124,18 @@ export struct CheckinCard {
             Column() {
               Text(`${day.date}`)
                 .fontSize(15)
-                .fontWeight(day.isToday ? FontWeight.Bold : FontWeight.Medium)
-                .fontColor(day.isToday ? Color.White : AppColors.TEXT_SECONDARY)
+                .fontWeight(this.getDayFontWeight(day))
+                .fontColor(this.getDayTextColor(day))
             }
             .height(40)
             .width(40)
             .borderRadius(10)
             .justifyContent(FlexAlign.Center)
-            .backgroundColor(day.isToday ? AppColors.PRIMARY : Color.Transparent)
+            .backgroundColor(this.getDayBackgroundColor(day))
+            .border({
+              width: day.isToday && !this.todayModel.hasCheckedIn ? 1 : 0,
+              color: this.getDayBorderColor(day)
+            })
           }
           .justifyContent(FlexAlign.Center)
 

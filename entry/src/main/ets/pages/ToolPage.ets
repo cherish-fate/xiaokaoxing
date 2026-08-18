@@ -18,11 +18,24 @@ struct ToolPage {
   @State errorMsg: string = '';
   @State model: ToolPageModel = ToolPageModel.empty();
   @State greeting: string = '今天也是充实的一天 🌟';
+  private isFirstShow: boolean = true;
 
   async aboutToAppear(): Promise<void> {
     this.updateGreeting();
     this.pageState = 'LOADING';
     await this.loadData();
+  }
+
+  onPageShow(): void {
+    // 首次展示由 aboutToAppear 负责加载，跳过避免重复
+    if (this.isFirstShow) {
+      this.isFirstShow = false;
+      return;
+    }
+    // 从子页面（如笔记页）返回时刷新数据，确保笔记数量等及时更新
+    if (this.pageState === 'CONTENT') {
+      this.loadData();
+    }
   }
 
   private updateGreeting(): void {
@@ -202,7 +215,7 @@ struct ToolPage {
           .textOverflow({ overflow: TextOverflow.Ellipsis })
           .width('100%')
 
-        Text(`${this.model.dailyQuestion.subject || '每日精进'} · 答错自动入错题本`)
+        Text(`${this.model.dailyQuestion.subject || '每日精进'} `)
           .fontSize(11)
           .fontColor(AppColors.TEXT_HINT)
           .width('100%')

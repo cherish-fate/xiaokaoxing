@@ -15,19 +15,59 @@ export struct PrepResourceSection {
   @Link resourcesTotal: number;
   @Link loadMoreState: number;
   @Link pageState: string;
+  @Link isResourcesLoading: boolean;
   onCategoryChange: (category: string) => void = () => {};
   onLoadMore: () => void = () => {};
   onMoreClick: () => void = () => {};
 
+  private cloneItem(src: PrepResourceItemModel): PrepResourceItemModel {
+    return new PrepResourceItemModel(
+      src.id,
+      src.title,
+      src.category,
+      src.typeTag,
+      src.isHot,
+      src.author,
+      src.createdAt,
+      src.viewCount,
+      src.isFavorited,
+      src.fileUrl
+    );
+  }
+
+  private replaceItemAndRefresh(list: PrepResourceItemModel[], index: number): PrepResourceItemModel[] {
+    const result: PrepResourceItemModel[] = list.slice();
+    result[index] = this.cloneItem(list[index]);
+    return result;
+  }
+
   private async toggleFavorite(item: PrepResourceItemModel): Promise<void> {
     const prev = item.isFavorited;
-    item.isFavorited = !item.isFavorited;
-    const res = await prepRepository.toggleFavorite(item.id, item.isFavorited);
+    const next = !prev;
+    // 乐观更新：立即修改并通过替换数组元素触发UI刷新
+    const idx = this.resources.findIndex((r: PrepResourceItemModel) => r.id === item.id);
+    if (idx >= 0) {
+      this.resources[idx].isFavorited = next;
+      this.resources = this.replaceItemAndRefresh(this.resources, idx);
+    }
+    const res = await prepRepository.toggleFavorite(item.id, next);
     if (res.success && res.data !== undefined) {
-      item.isFavorited = res.data!;
-      ToastUtil.show(res.data ? '收藏成功' : '已取消收藏');
+      const finalState: boolean = res.data!;
+      // 如果服务端状态和乐观更新不一致，再修正最终状态
+      if (finalState !== next) {
+        const finalIdx = this.resources.findIndex((r: PrepResourceItemModel) => r.id === item.id);
+        if (finalIdx >= 0) {
+          this.resources[finalIdx].isFavorited = finalState;
+          this.resources = this.replaceItemAndRefresh(this.resources, finalIdx);
+        }
+      }
     } else {
-      item.isFavorited = prev;
+      // 失败回滚
+      const rollbackIdx = this.resources.findIndex((r: PrepResourceItemModel) => r.id === item.id);
+      if (rollbackIdx >= 0) {
+        this.resources[rollbackIdx].isFavorited = prev;
+        this.resources = this.replaceItemAndRefresh(this.resources, rollbackIdx);
+      }
       ToastUtil.show(res.message || '操作失败，请重试');
     }
   }
@@ -155,7 +195,43 @@ export struct PrepResourceSection {
 
       this.CategoryTabs();
 
-      if (this.resources.length === 0 && this.pageState === 'CONTENT') {
+      if (this.isResourcesLoading) {
+        Column({ space: AppSize.PADDING_SM }) {
+          ForEach([1, 2, 3], (_: number) => {
+            Row({ space: AppSize.PADDING_MD }) {
+              Column()
+                .width(44)
+                .height(44)
+                .borderRadius(AppSize.RADIUS_SM)
+                .backgroundColor(AppColors.BG);
+              Column({ space: 8 }) {
+                Row()
+                  .width(60)
+                  .height(16)
+                  .borderRadius(4)
+                  .backgroundColor(AppColors.BG);
+                Row()
+                  .width('80%')
+                  .height(16)
+                  .borderRadius(4)
+                  .backgroundColor(AppColors.BG);
+                Row()
+                  .width(120)
+                  .height(12)
+                  .borderRadius(4)
+                  .backgroundColor(AppColors.BG);
+              }
+              .layoutWeight(1);
+            }
+            .width('100%')
+            .padding(AppSize.PADDING_MD)
+            .backgroundColor(AppColors.CARD)
+            .borderRadius(AppSize.RADIUS_MD)
+            .border({ width: 1, color: '#0000000A' });
+          }, (i: number) => `skeleton-${i}`);
+        }
+        .width('100%');
+      } else if (this.resources.length === 0 && this.pageState === 'CONTENT') {
         Column() {
           Text('📭').fontSize(32).margin({ bottom: AppSize.PADDING_SM });
           Text('暂无资源')

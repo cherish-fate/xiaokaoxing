@@ -2,10 +2,36 @@ import { AppColors, AppSize } from '../utils/Constants';
 import { HotTeamModel } from '../model/CommunityHomeModel';
 import { RouterUtil } from '../utils/RouterUtil';
 import { RouteUrls } from '../utils/RouteUrls';
+import { ToastUtil } from '../utils/ToastUtil';
+import { teamRepository } from '../repository/TeamRepository';
 
 @Component
 export struct HotTeamCard {
   @Link hotTeams: HotTeamModel[];
+  @State joiningTeamId: number = 0;
+
+  private async onJoinTeam(team: HotTeamModel): Promise<void> {
+    if (this.joiningTeamId === team.id) return;
+    this.joiningTeamId = team.id;
+    const res = await teamRepository.joinTeam(team.id);
+    this.joiningTeamId = 0;
+    if (!res.success) {
+      ToastUtil.show(res.message || '申请失败');
+      return;
+    }
+    ToastUtil.show(res.message || '申请成功，等待队长审核');
+    // 乐观更新：将 joinStatus 设置为"待审核"，立即反映在 UI 上
+    this.hotTeams = this.hotTeams.map((t: HotTeamModel) => {
+      if (t.id === team.id) {
+        return new HotTeamModel(
+          t.id, t.name, t.subject, t.memberCount, t.maxMembers, t.checkinRate,
+          t.totalCheckins, t.onlineCount, t.isCreator, '待审核', t.pendingRequests,
+          t.description, t.resourceCount
+        );
+      }
+      return t;
+    });
+  }
 
   @Builder
   TeamItem(team: HotTeamModel) {
@@ -63,17 +89,31 @@ export struct HotTeamCard {
       }
       .width('100%')
 
-      if (!team.isCreator) {
-        Button('+ 申请加入（需审核）')
+      if (team.isCreator) {
+        // 自己创建的小队：显示"管理小队"按钮，跳转详情页
+        Button('管理小队')
           .width('100%')
           .height(40)
-          .backgroundColor(AppColors.PRIMARY)
+          .backgroundColor('#F0F4FF')
           .fontSize(14)
-          .fontColor(Color.White)
+          .fontColor(AppColors.PRIMARY)
           .borderRadius(10)
           .onClick(() => RouterUtil.push(RouteUrls.COMMUNITY_TEAM_DETAIL,
             { "id": team.id }))
-      } else {
+      } else if (team.isMember) {
+        // 已加入的小队：显示"已加入"标签
+        Row({ space: 6 }) {
+          Text('✓ 已加入')
+            .fontSize(13)
+            .fontColor(AppColors.SUCCESS)
+        }
+        .justifyContent(FlexAlign.Center)
+        .borderRadius(15)
+        .backgroundColor('#E6F7F5')
+        .width('100%')
+        .padding({ top: 10, bottom: 10 })
+      } else if (team.joinStatus === '待审核') {
+        // 已申请待审核：显示"审核中"标签
         Row({ space: 6 }) {
           Image($r('app.media.community_shalou'))
             .width(20)
@@ -86,6 +126,17 @@ export struct HotTeamCard {
         .backgroundColor('#ffe7e6e6')
         .width('100%')
         .padding({ top: 10, bottom: 10 })
+      } else {
+        // 别人创建的小队：显示"申请加入"按钮，点击后立即发起申请
+        Button(this.joiningTeamId === team.id ? '申请中...' : '申请加入（需审核）')
+          .width('100%')
+          .height(40)
+          .backgroundColor(AppColors.PRIMARY)
+          .fontSize(14)
+          .fontColor(Color.White)
+          .borderRadius(10)
+          .enabled(this.joiningTeamId !== team.id)
+          .onClick(() => this.onJoinTeam(team))
       }
     }
     .width('100%')
@@ -152,7 +203,7 @@ export struct HotTeamCard {
         } else {
           ForEach(this.hotTeams, (team: HotTeamModel) => {
             this.TeamItem(team)
-          })
+          }, (team: HotTeamModel) => `${team.id}_${team.isCreator}_${team.joinStatus}`)
         }
       }
       .width('100%')

@@ -53,7 +53,7 @@ export struct TodayTaskSection {
     Column({ space: 12 }) {
       Text(this.taskList?.emptyHint || '今日暂无任务，开始添加学习计划吧')
         .fontSize(14)
-        .fontColor(AppColors.TEXT_SECONDARY)
+        .fontColor(AppColors.TEXT_HINT)
     }
     .width('100%')
     .padding(20)

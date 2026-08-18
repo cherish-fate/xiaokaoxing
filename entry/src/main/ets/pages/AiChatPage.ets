@@ -19,6 +19,7 @@ struct AiChatPage {
   @State attachmentName: string = '';
   @State scrollLastKey: number = 0;
   @State uiTick: number = 0;
+  private refreshCounter: number = 0;
 
   private scroller: Scroller = new Scroller();
   private autoSendMsg: string = '';
@@ -47,7 +48,7 @@ struct AiChatPage {
       this.inputText = this.autoSendMsg;
       this.shouldAutoSend = false;
       setTimeout(() => this.sendMessage(), 200);
-    } else if (this.autoSendMsg && this.conversation.messages.length === 0) {
+    } else if (this.autoSendMsg) {
       this.inputText = this.autoSendMsg;
       this.autoSendMsg = '';
     }
@@ -65,7 +66,8 @@ struct AiChatPage {
   }
 
   forceUiRefresh() {
-    this.uiTick = Date.now();
+    this.refreshCounter++;
+    this.uiTick = this.refreshCounter;
     setTimeout(() => {
       try { this.scroller.scrollEdge(Edge.Bottom); } catch (e) {}
     }, 20);
@@ -87,6 +89,7 @@ struct AiChatPage {
     this.attachmentName = '';
     this.forceUiRefresh();
     const aiMsg = this.conversation.addAiStreaming();
+    this.forceUiRefresh();
     await aiChatRepository.sendAndStream(
       msg,
       this.conversation.conversationId,

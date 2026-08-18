@@ -24,7 +24,8 @@ export class CommunityRepository {
     return new CheckinStatsModel(
       s.total_days || 0,
       s.continuous_days || 0,
-      s.rank || 0
+      s.rank || 0,
+      s.checked_week_days || []
     );
   }
 
@@ -35,7 +36,8 @@ export class CommunityRepository {
       v.title || '',
       v.vote_count || 0,
       v.confidence || 0,
-      v.stars || 0
+      v.stars || 0,
+      v.total_users || 0
     );
   }
 

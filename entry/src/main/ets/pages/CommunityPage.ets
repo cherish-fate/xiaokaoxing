@@ -38,6 +38,21 @@ struct CommunityPage {
     await this.loadData();
   }
 
+  onPageShow(): void {
+    this.loadCheckinOnly();
+  }
+
+  private async loadCheckinOnly(): Promise<void> {
+    const todayRes = await checkinRepository.loadTodayStatus();
+    if (todayRes.code === 401) {
+      setTimeout(() => RouterUtil.toLogin(), 800);
+      return;
+    }
+    if (todayRes.success && todayRes.data) {
+      this.todayCheckin = todayRes.data;
+    }
+  }
+
   private async loadData(): Promise<void> {
     const result= await Promise.all([
       communityRepository.loadCommunityHome(),

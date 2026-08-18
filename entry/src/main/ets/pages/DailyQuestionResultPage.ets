@@ -1,6 +1,7 @@
 import { AppColors } from '../utils/Constants';
 import { RouterUtil } from '../utils/RouterUtil';
 import { ToastUtil } from '../utils/ToastUtil';
+import { DateUtil } from '../utils/DateUtil';
 
 @Entry
 @Component
@@ -16,6 +17,7 @@ struct DailyQuestionResultPage {
   @State question: string = '';
   @State options: string[] = [];
   @State difficulty: number = 1;
+  @State streak: number = 0;
 
   aboutToAppear(): void {
     const params: Record<string, Object> = RouterUtil.getParams();
@@ -31,6 +33,7 @@ struct DailyQuestionResultPage {
     const optsStr: string = String(params['options'] || '');
     this.options = optsStr ? optsStr.split('||') : [];
     this.difficulty = parseInt(String(params['difficulty'] || '1')) || 1;
+    this.streak = parseInt(String(params['streak'] || '0')) || 0;
   }
 
   private onBack(): void {
@@ -92,7 +95,7 @@ struct DailyQuestionResultPage {
         Row({ space: 6 }) {
           Text('🔥')
             .fontSize(14)
-          Text('连续答题 7 天')
+          Text(`连续答题 ${this.streak} 天`)
             .fontSize(12)
             .fontWeight(FontWeight.Bold)
             .fontColor(Color.White)
@@ -105,7 +108,7 @@ struct DailyQuestionResultPage {
       .height(44)
 
       Row({ space: 6 }) {
-        Text('📅 2026年8月12日')
+        Text(`📅 ${DateUtil.todayChinese()}`)
           .fontSize(12)
           .fontColor('rgba(255,255,255,0.85)')
           .fontWeight(FontWeight.Medium)

@@ -2,15 +2,17 @@ export class CheckinStatsModel {
   totalDays: number;
   continuousDays: number;
   rank: number;
+  checkedWeekDays: number[];
 
-  constructor(totalDays: number, continuousDays: number, rank: number) {
+  constructor(totalDays: number, continuousDays: number, rank: number, checkedWeekDays: number[] = []) {
     this.totalDays = totalDays;
     this.continuousDays = continuousDays;
     this.rank = rank;
+    this.checkedWeekDays = checkedWeekDays;
   }
 
   static empty(): CheckinStatsModel {
-    return new CheckinStatsModel(0, 0, 0);
+    return new CheckinStatsModel(0, 0, 0, []);
   }
 }
 

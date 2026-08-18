@@ -1,25 +1,32 @@
 import { AppColors, AppSize, TagStyle } from '../utils/Constants';
 import { ToastUtil } from '../utils/ToastUtil';
+import { RouterUtil } from '../utils/RouterUtil';
 
 interface QuickFuncItem {
   icon: string;
   label: string;
   bg: string;
+  prompt: string;
 }
 
 const QUICK_ITEMS: QuickFuncItem[] = [
-  { icon: '📚', label: '资料拆解', bg: TagStyle.BLUE },
-  { icon: '📝', label: 'AI模拟卷', bg: TagStyle.ORANGE },
-  { icon: '🔍', label: '智能搜题', bg: TagStyle.GREEN },
-  { icon: '💬', label: 'AI答疑', bg: TagStyle.PURPLE },
-  { icon: '🎧', label: '音频听背', bg: TagStyle.RED },
-  { icon: '🎯', label: '薄弱诊断', bg: TagStyle.BLUE }
+  { icon: '📚', label: '资料拆解', bg: TagStyle.BLUE, prompt: '请帮我拆解并梳理这份复习资料的重点' },
+  { icon: '📝', label: 'AI模拟卷', bg: TagStyle.ORANGE, prompt: '请帮我出一套期末模拟试卷' },
+  { icon: '🔍', label: '智能搜题', bg: TagStyle.GREEN, prompt: '我想搜索一道题目的解析和考点' },
+  { icon: '💬', label: 'AI答疑', bg: TagStyle.PURPLE, prompt: '我有一道题目需要你帮我解答' },
+  { icon: '🎧', label: '音频听背', bg: TagStyle.RED, prompt: '' },
+  { icon: '🎯', label: '薄弱诊断', bg: TagStyle.BLUE, prompt: '请帮我诊断薄弱知识点并给出复习建议' }
 ];
 
 @Component
 export struct QuickFunctionBar {
-  onTap(label: string) {
-    ToastUtil.show(`${label}功能即将上线`);
+  onTap(item: QuickFuncItem) {
+    if (item.prompt) {
+      // 预填提示词到输入框，由用户确认后再发送
+      RouterUtil.pushToAiChat(item.prompt, false);
+    } else {
+      ToastUtil.show(`${item.label}功能即将上线`);
+    }
   }
 
   build() {
@@ -54,7 +61,7 @@ export struct QuickFunctionBar {
             }
             .width(64)
             .alignItems(HorizontalAlign.Center)
-            .onClick(() => this.onTap(item.label));
+            .onClick(() => this.onTap(item));
           }, (item: QuickFuncItem, index: number) => `qf-${index}`)
         }
       }

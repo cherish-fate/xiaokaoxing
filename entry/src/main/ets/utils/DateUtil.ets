@@ -4,6 +4,11 @@ export class DateUtil {
     return DateUtil.format(d);
   }
 
+  static todayChinese(): string {
+    const d = new Date();
+    return `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日`;
+  }
+
   static format(date: Date): string {
     const y = date.getFullYear();
     const m = `${date.getMonth() + 1}`.padStart(2, '0');

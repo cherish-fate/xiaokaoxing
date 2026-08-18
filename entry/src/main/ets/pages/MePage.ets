@@ -8,6 +8,7 @@ import {
   MeCheckinStatsModel
 } from '../model/MeModel';
 import { meRepository } from '../repository/MeRepository';
+import { teamRepository } from '../repository/TeamRepository';
 import { BottomTabBar, TabIndex } from '../components/BottomTabBar';
 import { LoadingView, ErrorView } from '../components/StateViews';
 import { RouterUtil } from '../utils/RouterUtil';
@@ -26,23 +27,9 @@ struct MePage {
   @State errorMsg: string = '';
   @State model: MePageModel = MePageModel.empty();
   @State isRefreshing: boolean = false;
-  private isFirstShow: boolean = true;
-
   aboutToAppear(): void {
     this.pageState = PageState.LOADING;
     this.loadDataWrapper();
-  }
-
-  onPageShow(): void {
-    if (!this.isFirstShow) {
-      if (this.pageState === PageState.CONTENT) {
-        this.onRefresh();
-      } else {
-        this.pageState = PageState.LOADING;
-        this.loadDataWrapper();
-      }
-    }
-    this.isFirstShow = false;
   }
 
   private loadDataWrapper(): void {
@@ -94,7 +81,7 @@ struct MePage {
   }
 
   private goToMyUploads(): void {
-    RouterUtil.push(RouteUrls.COMMUNITY_UPLOAD)
+    RouterUtil.push(RouteUrls.COMMUNITY_UPLOAD, { "tab": '1' })
   }
 
   private goToMyVotes(): void {

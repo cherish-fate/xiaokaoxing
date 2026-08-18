@@ -5,6 +5,7 @@ export class HotVoteModel {
   voteCount: number;
   confidence: number;
   stars: number;
+  totalUsers: number;
 
   constructor(
     id: number,
@@ -12,7 +13,8 @@ export class HotVoteModel {
     title: string,
     voteCount: number,
     confidence: number,
-    stars: number
+    stars: number,
+    totalUsers: number = 0
   ) {
     this.id = id;
     this.subject = subject;
@@ -20,14 +22,22 @@ export class HotVoteModel {
     this.voteCount = voteCount;
     this.confidence = confidence;
     this.stars = stars;
+    this.totalUsers = totalUsers;
+  }
+
+  computedConfidence(): number {
+    if (this.totalUsers > 0) {
+      return Math.round((this.voteCount / this.totalUsers) * 100);
+    }
+    return this.confidence;
   }
 
   confidencePercent(): string {
-    return `${this.confidence.toFixed(0)}%`;
+    return `${this.computedConfidence()}%`;
   }
 
   confidenceWidth(): number {
-    return Math.max(5, Math.min(100, this.confidence));
+    return Math.max(5, Math.min(100, this.computedConfidence()));
   }
 
   starsText(): string {
@@ -57,6 +67,7 @@ export class HotVoteModel {
   }
 }
 
+@Observed
 export class VoteItemModel {
   id: number;
   subject: string;

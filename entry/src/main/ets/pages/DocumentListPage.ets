@@ -67,10 +67,6 @@ struct DocumentListPage {
     RouterUtil.back();
   }
 
-  private onSearchTap(): void {
-    ToastUtil.show('搜索功能即将上线');
-  }
-
   private onCategoryTap(category: string): void {
     if (this.selectedCategory === category) return;
     this.selectedCategory = category;
@@ -308,17 +304,13 @@ struct DocumentListPage {
   @Builder
   Header() {
     Row() {
-      Row() {
-        Text('‹')
-          .fontSize(24)
-          .fontWeight(FontWeight.Medium)
-          .fontColor(AppColors.TEXT_PRIMARY)
-      }
-      .width(40)
-      .height(40)
-      .borderRadius(12)
-      .justifyContent(FlexAlign.Center)
-      .onClick(() => this.onBack())
+      Image($r('app.media.examDetail_back'))
+        .width(40)
+        .height(40)
+        .padding(10)
+        .backgroundColor(AppColors.CARD)
+        .borderRadius(20)
+        .onClick(() => this.onBack())
 
       Text('个人文档库')
         .fontSize(17)
@@ -327,16 +319,6 @@ struct DocumentListPage {
         .layoutWeight(1)
         .textAlign(TextAlign.Center)
 
-      Row() {
-        Text('🔍')
-          .fontSize(18)
-          .fontColor(AppColors.TEXT_SECONDARY)
-      }
-      .width(40)
-      .height(40)
-      .borderRadius(12)
-      .justifyContent(FlexAlign.Center)
-      .onClick(() => this.onSearchTap())
     }
     .width('100%')
     .height(56)

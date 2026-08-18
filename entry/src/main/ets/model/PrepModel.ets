@@ -25,6 +25,7 @@ export class RecommendationItemModel {
   }
 }
 
+@Observed
 export class PrepResourceItemModel {
   id: number;
   title: string;

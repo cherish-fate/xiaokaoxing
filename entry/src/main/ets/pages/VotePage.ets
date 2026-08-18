@@ -1,6 +1,7 @@
 import { AppColors, AppSize } from '../utils/Constants';
 import { ToastUtil } from '../utils/ToastUtil';
 import { RouterUtil } from '../utils/RouterUtil';
+import { DateUtil } from '../utils/DateUtil';
 import { voteRepository } from '../repository/VoteRepository';
 import {
   VoteItemModel,
@@ -57,26 +58,43 @@ struct VotePage {
       return;
     }
     this.votingIds.push(voteId);
-    this.list[idx].voteCount += 1;
-    this.list[idx].hasVoted = true;
+    // 乐观更新：克隆当前项并标记为已投，替换数组中对应项以触发 ForEach 重新渲染
+    const oldItem: VoteItemModel = this.list[idx];
+    const optimistic: VoteItemModel = new VoteItemModel(
+      oldItem.id, oldItem.subject, oldItem.title, oldItem.description,
+      oldItem.voteCount + 1, oldItem.confidence, oldItem.stars, true
+    );
+    this.list = this.list.map((v, i) => i === idx ? optimistic : v);
     const res = await voteRepository.voteFor(voteId);
     const pos = this.votingIds.indexOf(voteId);
     if (pos >= 0) this.votingIds.splice(pos, 1);
     if (!res.success || !res.data) {
-      if (idx >= 0 && idx < this.list.length) {
-        this.list[idx].voteCount -= 1;
-        this.list[idx].hasVoted = false;
-      }
       if (res.code === 409) {
-        if (idx >= 0 && idx < this.list.length) this.list[idx].hasVoted = true;
+        // 已投过：保持已投状态，但票数回退
+        const voted: VoteItemModel = new VoteItemModel(
+          oldItem.id, oldItem.subject, oldItem.title, oldItem.description,
+          oldItem.voteCount, oldItem.confidence, oldItem.stars, true
+        );
+        this.list = this.list.map((v, i) => i === idx ? voted : v);
+      } else {
+        // 其他失败：完全回滚
+        this.list = this.list.map((v, i) => i === idx ? oldItem : v);
       }
       ToastUtil.show(res.message || '投票失败');
       return;
     }
-    if (idx >= 0 && idx < this.list.length) {
-      this.list[idx].confidence = res.data.confidence;
-      this.list[idx].voteCount = res.data.voteCount;
-    }
+    // 成功：用服务端返回的真实数据更新
+    const updated: VoteItemModel = new VoteItemModel(
+      optimistic.id, optimistic.subject, optimistic.title, optimistic.description,
+      res.data.voteCount, res.data.confidence, optimistic.stars, true
+    );
+    this.list = this.list.map((v, i) => i === idx ? updated : v);
+    // 我的投票记录立即增加一条
+    const newRecord: MyVoteRecordModel = new MyVoteRecordModel(
+      voteId, oldItem.subject, oldItem.title, res.data.voteCount, res.data.confidence,
+      DateUtil.toShortDateTime(new Date().toISOString()), '会考'
+    );
+    this.myVotes = [newRecord, ...this.myVotes];
     ToastUtil.show('投票成功');
   }
 
@@ -484,15 +502,20 @@ struct VotePage {
   }
 
   @Builder
-  Loading() {
+  LoadingView() {
     Column() {
       LoadingProgress()
+        .width(32)
+        .height(32)
         .color(AppColors.PRIMARY)
+        .margin({ bottom: AppSize.PADDING_MD });
+      Text('加载中...')
+        .fontSize(14)
+        .fontColor(AppColors.TEXT_SECONDARY);
     }
     .width('100%')
     .height('100%')
-    .justifyContent(FlexAlign.Center)
-    .backgroundColor(AppColors.BG)
+    .justifyContent(FlexAlign.Center);
   }
 
   build() {
@@ -501,7 +524,7 @@ struct VotePage {
         this.Header()
 
         if (this.pageState === 'LOADING') {
-          this.Loading()
+          this.LoadingView()
         } else {
           this.SubjectFilter()
 
@@ -514,7 +537,7 @@ struct VotePage {
               } else {
                 ForEach(this.list.slice(0, 3), (v: VoteItemModel) => {
                   this.VoteItemCard(v)
-                })
+                }, (v: VoteItemModel) => `${v.id}_${v.hasVoted}`)
               }
 
               if (this.pending.length > 0) {
@@ -532,7 +555,7 @@ struct VotePage {
               } else {
                 ForEach(this.myVotes.slice(0, 5), (r: MyVoteRecordModel) => {
                   this.MyVoteItemCard(r)
-                })
+                }, (r: MyVoteRecordModel) => `${r.voteId}`)
               }
 
               Column()
@@ -561,11 +584,11 @@ struct VotePage {
               .fontColor(Color.White)
           }
         }
-        .width('100%')
+        .width(350)
         .height(50)
         .backgroundColor(AppColors.PRIMARY)
         .borderRadius(25)
-        .margin({ left: AppSize.PADDING_MD, right: AppSize.PADDING_MD, bottom: 12 })
+        .margin({ left: 20, right:20, bottom: 12 })
         .onClick(() => { this.showSubmit = true; })
       }
 

@@ -44,12 +44,12 @@ export struct HotVoteCard {
 
       Row({ space: 8 }) {
         Row()
-          .width(`${Math.min(vote.confidence, 100)}%`)
+          .width(`${Math.min(vote.confidenceWidth(), 100)}%`)
           .height(8)
           .backgroundColor(AppColors.PRIMARY)
           .borderRadius(4)
         this.StarRow(vote.stars)
-        Text(`${vote.confidence}%认为会考`)
+        Text(`${vote.computedConfidence()}%认为会考`)
           .fontSize(11)
           .fontColor(AppColors.TEXT_SECONDARY)
       }

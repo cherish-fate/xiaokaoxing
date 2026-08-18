@@ -24,17 +24,27 @@ struct TeamDetailPage {
   @State confirmMessage: string = '';
   @State showConfirm: boolean = false;
   @State confirmAction: (() => void) | null = null;
+  private isFirstShow: boolean = true;
 
-  onPageShow() {
+  async aboutToAppear(): Promise<void> {
+    this.pageState = 'LOADING';
+    // 在 aboutToAppear 中读取路由参数（onPageShow 触发晚于 aboutToAppear，会导致 teamId 为 0）
     const params = RouterUtil.getParams();
     if (params && params['id'] !== undefined) {
       this.teamId = Number(params['id']);
     }
+    await this.load();
   }
 
-  async aboutToAppear(): Promise<void> {
-    this.pageState = 'LOADING';
-    await this.load();
+  onPageShow() {
+    if (this.isFirstShow) {
+      this.isFirstShow = false;
+      return;
+    }
+    // 从子页面返回时刷新数据
+    if (this.teamId) {
+      this.load();
+    }
   }
 
   private async load() {

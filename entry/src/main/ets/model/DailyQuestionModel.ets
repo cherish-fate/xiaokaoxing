@@ -13,6 +13,7 @@ export class DailyQuestionModel {
   difficulty: number;
   date: string;
   hasAnswered: boolean;
+  streak: number;
   record: DailyAnsweredRecord | null;
 
   constructor(
@@ -23,6 +24,7 @@ export class DailyQuestionModel {
     difficulty: number = 1,
     date: string = '',
     hasAnswered: boolean = false,
+    streak: number = 0,
     record: DailyAnsweredRecord | null = null
   ) {
     this.id = id;
@@ -32,6 +34,7 @@ export class DailyQuestionModel {
     this.difficulty = difficulty;
     this.date = date;
     this.hasAnswered = hasAnswered;
+    this.streak = streak;
     this.record = record;
   }
 
@@ -48,6 +51,7 @@ export class DailyQuestionModel {
       src.difficulty || 1,
       src.date || '',
       !!src.has_answered,
+      src.streak || 0,
       src.record || null
     );
   }
@@ -93,19 +97,22 @@ export class DailyQuestionResultModel {
   explanation: string;
   earnedPoints: number;
   wrongBookAdded: boolean;
+  streak: number;
 
   constructor(
     isCorrect: boolean = false,
     correctAnswer: string = '',
     explanation: string = '',
     earnedPoints: number = 0,
-    wrongBookAdded: boolean = false
+    wrongBookAdded: boolean = false,
+    streak: number = 0
   ) {
     this.isCorrect = isCorrect;
     this.correctAnswer = correctAnswer;
     this.explanation = explanation;
     this.earnedPoints = earnedPoints;
     this.wrongBookAdded = wrongBookAdded;
+    this.streak = streak;
   }
 
   static empty(): DailyQuestionResultModel {
@@ -118,7 +125,8 @@ export class DailyQuestionResultModel {
       src.correct_answer || '',
       src.explanation || '',
       src.earned_points || 0,
-      !!src.wrong_book_added
+      !!src.wrong_book_added,
+      src.streak || 0
     );
   }
 
@@ -128,7 +136,8 @@ export class DailyQuestionResultModel {
       '',
       record.explanation || '',
       0,
-      false
+      false,
+      0
     );
   }
 }

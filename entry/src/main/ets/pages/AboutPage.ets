@@ -142,17 +142,13 @@ struct AboutPage {
   @Builder
   NavBar() {
     Row() {
-      Row() {
-        Text('‹')
-          .fontSize(24)
-          .fontWeight(FontWeight.Medium)
-          .fontColor(AppColors.TEXT_PRIMARY)
-      }
-      .width(40)
-      .height(40)
-      .borderRadius(12)
-      .justifyContent(FlexAlign.Center)
-      .onClick(() => this.onBack())
+      Image($r('app.media.examDetail_back'))
+        .width(40)
+        .height(40)
+        .padding(10)
+        .backgroundColor(AppColors.CARD)
+        .borderRadius(20)
+        .onClick(() => this.onBack())
 
       Text('关于校考星')
         .fontSize(17)

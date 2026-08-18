@@ -25,6 +25,7 @@ struct PrepPage {
   @State resourcesTotal: number = 0;
   @State loadMoreState: number = 0;
   @State isRefreshing: boolean = false;
+  @State isResourcesLoading: boolean = false;
 
   private offSet: number = 0;
   private categoryChanging: boolean = false;
@@ -77,8 +78,38 @@ struct PrepPage {
   private async onCategoryChange(category: string): Promise<void> {
     if (this.categoryChanging || this.currentCategory === category) return;
     this.currentCategory = category;
-    this.pageState = 'LOADING';
-    await this.loadData(true);
+    await this.loadResourcesOnly();
+  }
+
+  private async loadResourcesOnly(): Promise<void> {
+    this.categoryChanging = true;
+    this.isResourcesLoading = true;
+    this.offSet = 0;
+    const res = await prepRepository.loadResources(
+      this.currentCategory,
+      PAGE_SIZE,
+      0
+    );
+    if (res.code === 401) {
+      this.isResourcesLoading = false;
+      this.categoryChanging = false;
+      ToastUtil.show('登录已过期，请重新登录');
+      setTimeout(() => RouterUtil.toLogin(), 800);
+      return;
+    }
+    if (!res.success || !res.data) {
+      this.isResourcesLoading = false;
+      this.categoryChanging = false;
+      ToastUtil.show(res.message || '资源加载失败');
+      return;
+    }
+    const data = res.data;
+    this.resources = data.list;
+    this.resourcesTotal = data.total;
+    this.offSet = this.resources.length;
+    this.loadMoreState = this.resources.length >= this.resourcesTotal ? 2 : 0;
+    this.isResourcesLoading = false;
+    this.categoryChanging = false;
   }
 
   private async onLoadMore(): Promise<void> {
@@ -88,8 +119,20 @@ struct PrepPage {
       return;
     }
     this.loadMoreState = 1;
-    await this.loadData(false);
-    if (this.loadMoreState === 1) this.loadMoreState = 0;
+    const res = await prepRepository.loadResources(
+      this.currentCategory,
+      PAGE_SIZE,
+      this.offSet
+    );
+    if (res.success && res.data) {
+      this.resources = this.resources.concat(res.data.list);
+      this.resourcesTotal = res.data.total;
+      this.offSet = this.resources.length;
+      this.loadMoreState = this.resources.length >= this.resourcesTotal ? 2 : 0;
+    } else {
+      ToastUtil.show(res.message || '加载失败');
+      this.loadMoreState = 0;
+    }
   }
 
   private async onRefresh(): Promise<void> {
@@ -152,7 +195,7 @@ struct PrepPage {
         .height(32)
         .color(AppColors.PRIMARY)
         .margin({ bottom: AppSize.PADDING_MD });
-      Text('正在加载备考中心...')
+      Text('加载中...')
         .fontSize(14)
         .fontColor(AppColors.TEXT_SECONDARY);
     }
@@ -203,6 +246,7 @@ struct PrepPage {
         resourcesTotal: $resourcesTotal,
         loadMoreState: $loadMoreState,
         pageState: $pageState,
+        isResourcesLoading: $isResourcesLoading,
         onCategoryChange: (cat: string) => this.onCategoryChange(cat),
         onLoadMore: () => this.onLoadMore(),
         onMoreClick: ():void => this.onMoreClick()
