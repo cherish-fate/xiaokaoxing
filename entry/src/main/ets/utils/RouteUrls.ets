@@ -32,4 +32,5 @@ export class RouteUrls {
   static readonly ME_EDIT: string = 'pages/MeEditPage';
   static readonly NOTIFICATION_SETTINGS: string = 'pages/NotificationSettingsPage';
   static readonly ABOUT: string = 'pages/AboutPage';
+  static readonly WEB_VIEW: string = 'pages/WebViewPage';
 }

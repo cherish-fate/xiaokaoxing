@@ -6,7 +6,8 @@ import {
   AboutInfoResponse,
   NotificationSettingsResponse,
   UpdateNotificationSettingsRequest,
-  UpdateUserMeRequest
+  UpdateUserMeRequest,
+  AvatarUploadResponse
 } from '../api/ApiService';
 import {
   MePageModel,
@@ -178,6 +179,43 @@ export class MeRepository {
       Logger.error(TAG, 'doLogout failed', e as Error);
       await StorageUtil.clearToken();
       return ResultUtil.success(null, '退出登录成功');
+    }
+  }
+
+  async uploadAvatar(fileBuffer: ArrayBuffer, fileName: string): Promise<AsyncResult<string>> {
+    try {
+      const res: ApiResponse<AvatarUploadResponse> = await apiService.uploadAvatar(fileBuffer, fileName);
+      if (res.code === 401) {
+        return ResultUtil.fail<string>(401, res.message || '登录已过期');
+      }
+      if (res.code === 200 && res.data) {
+        Logger.info(TAG, '头像上传成功');
+        return ResultUtil.success<string>(res.data.avatar_url, res.message || '头像更新成功');
+      }
+      Logger.warn(TAG, `uploadAvatar 返回 ${res.code}: ${res.message}`);
+      return ResultUtil.fail<string>(res.code, res.message || '头像上传失败');
+    } catch (e) {
+      Logger.error(TAG, 'uploadAvatar failed', e as Error);
+      return ResultUtil.fail<string>(-1, '网络异常，头像上传失败');
+    }
+  }
+
+  async deleteAccount(): Promise<AsyncResult<null>> {
+    try {
+      const res: ApiResponse<null> = await apiService.deleteAccount();
+      if (res.code === 200) {
+        await StorageUtil.clearToken();
+        Logger.info(TAG, '账号注销成功');
+        return ResultUtil.success(null, res.message || '账号已注销');
+      }
+      if (res.code === 401) {
+        return ResultUtil.fail<null>(401, res.message || '登录已过期');
+      }
+      Logger.warn(TAG, `deleteAccount 返回 ${res.code}: ${res.message}`);
+      return ResultUtil.fail<null>(res.code, res.message || '注销失败');
+    } catch (e) {
+      Logger.error(TAG, 'deleteAccount failed', e as Error);
+      return ResultUtil.fail<null>(-1, '网络异常，注销失败');
     }
   }
 

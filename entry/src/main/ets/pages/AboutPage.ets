@@ -1,6 +1,7 @@
 import { AppColors, AppText } from '../utils/Constants';
 import { LoadingView, ErrorView } from '../components/StateViews';
 import { RouterUtil } from '../utils/RouterUtil';
+import { RouteUrls } from '../utils/RouteUrls';
 import { ToastUtil } from '../utils/ToastUtil';
 import { MeAboutInfoModel } from '../model/MeModel';
 import { meRepository } from '../repository/MeRepository';
@@ -108,7 +109,11 @@ struct AboutPage {
 
   private onOpenPrivacy(): void {
     if (this.about.privacyUrl && this.about.privacyUrl.length > 0) {
-      ToastUtil.show('打开《隐私政策》');
+      const params: Record<string, Object> = {
+        'title': '隐私政策',
+        'url': this.about.privacyUrl
+      };
+      RouterUtil.pushWithParams(RouteUrls.WEB_VIEW, params);
     } else {
       ToastUtil.show('《隐私政策》暂未上线');
     }
@@ -116,7 +121,11 @@ struct AboutPage {
 
   private onOpenTerms(): void {
     if (this.about.termsUrl && this.about.termsUrl.length > 0) {
-      ToastUtil.show('打开《用户服务协议》');
+      const params: Record<string, Object> = {
+        'title': '用户服务协议',
+        'url': this.about.termsUrl
+      };
+      RouterUtil.pushWithParams(RouteUrls.WEB_VIEW, params);
     } else {
       ToastUtil.show('《用户服务协议》暂未上线');
     }
@@ -134,10 +143,7 @@ struct AboutPage {
     }
   }
 
-  private appLogoText(): string {
-    const name: string = this.about.appName || AppText.APP_NAME;
-    return name.length > 0 ? name.charAt(0) : '星';
-  }
+
 
   @Builder
   NavBar() {
@@ -168,16 +174,9 @@ struct AboutPage {
   @Builder
   BrandHeader() {
     Column({ space: 12 }) {
-      Text(this.appLogoText())
-        .fontSize(32)
-        .fontWeight(FontWeight.Bold)
-        .fontColor(AppColors.PRIMARY)
-        .width(72)
-        .height(72)
-        .textAlign(TextAlign.Center)
+      Image($r('app.media.logo'))
+        .width(80)
         .borderRadius(20)
-        .backgroundColor('rgba(255,255,255,0.95)')
-        .shadow({ radius: 8, color: 'rgba(0,0,0,0.10)' })
 
       Text(this.about.appName || AppText.APP_NAME)
         .fontSize(20)

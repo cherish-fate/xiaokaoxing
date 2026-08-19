@@ -122,6 +122,33 @@ struct MePage {
     setTimeout(() => RouterUtil.toLogin(), 300);
   }
 
+  private onDeleteAccountClick(): void {
+    promptAction.showDialog({
+      message: '注销账号将永久删除你的所有数据，且不可恢复。确定要注销吗？',
+      buttons: [
+        { text: '取消', color: AppColors.TEXT_SECONDARY },
+        { text: '确认注销', color: AppColors.DANGER }
+      ]
+    }).then((result: promptAction.ShowDialogSuccessResponse) => {
+      if (result.index === 1) {
+        this.doDeleteAccount();
+      }
+    }).catch(() => {});
+  }
+
+  private async doDeleteAccount(): Promise<void> {
+    const res = await meRepository.deleteAccount();
+    if (res.success) {
+      ToastUtil.show(res.message || '账号已注销');
+      setTimeout(() => RouterUtil.toLogin(), 600);
+    } else if (res.code === 401) {
+      ToastUtil.show('登录已过期，请重新登录');
+      setTimeout(() => RouterUtil.toLogin(), 800);
+    } else {
+      ToastUtil.show(res.message || '注销失败');
+    }
+  }
+
   private showConfirm(msg: string): Promise<boolean> {
     return new Promise((resolve: (v: boolean) => void) => {
       promptAction.showDialog({
@@ -453,6 +480,18 @@ struct MePage {
   }
 
   @Builder
+  DeleteAccountRow() {
+    Text('注销账号')
+      .fontSize(15)
+      .fontWeight(FontWeight.Medium)
+      .fontColor(AppColors.DANGER)
+      .width('100%')
+      .textAlign(TextAlign.Center)
+      .padding(16)
+      .onClick(() => this.onDeleteAccountClick())
+  }
+
+  @Builder
   ContentRowWithDivider(index: number) {
     Column() {
       if (index > 0) {
@@ -516,6 +555,10 @@ struct MePage {
               .color(AppColors.DIVIDER)
               .strokeWidth(1)
             this.LogoutRow()
+            Divider()
+              .color(AppColors.DIVIDER)
+              .strokeWidth(1)
+            this.DeleteAccountRow()
           }
           .width('100%')
         }

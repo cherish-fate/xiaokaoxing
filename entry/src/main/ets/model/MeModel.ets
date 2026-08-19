@@ -202,13 +202,13 @@ export class MeAboutInfoModel {
     return new MeAboutInfoModel(
       'v1.0.0',
       '校考星',
-      '校考星是一款专为艺术类考生打造的学习备考助手，集考试管理、任务规划、资料共享、社区互动于一体，帮你高效备战校考。',
+      '校考星是一款专为在校生打造的学习备考助手，集考试管理、任务规划、资料共享、社区互动于一体，帮你高效备战校考。',
       '校考星团队',
       'https://www.xiaokaoxing.com',
       'support@xiaokaoxing.com',
       '',
       '',
-      '© 2026 校考星团队 · 保留所有权利'
+      '@ 2026 校考星团队 · 保留所有权利'
     );
   }
 

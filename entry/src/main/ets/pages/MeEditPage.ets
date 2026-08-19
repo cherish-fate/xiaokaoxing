@@ -1,12 +1,16 @@
 import { promptAction } from '@kit.ArkUI';
 import { AppColors } from '../utils/Constants';
 import { ToastUtil } from '../utils/ToastUtil';
+import { Logger } from '../utils/Logger';
 import { LoadingView, ErrorView } from '../components/StateViews';
 import { RouterUtil } from '../utils/RouterUtil';
 import { MeUserProfileModel } from '../model/MeModel';
 import { MeEditFormModel } from '../model/MeEditModel';
 import { meRepository } from '../repository/MeRepository';
 import { apiService, Major } from '../api/ApiService';
+import picker from '@ohos.file.picker';
+import fs from '@ohos.file.fs';
+import { photoAccessHelper } from '@kit.MediaLibraryKit';
 
 interface MajorSelectorResult {
   index: number;
@@ -81,6 +85,8 @@ struct MajorSelectorDialog {
   }
 }
 
+const TAG = 'MeEditPage';
+
 enum PageState {
   LOADING = 'LOADING',
   CONTENT = 'CONTENT',
@@ -97,6 +103,7 @@ struct MeEditPage {
   @State showNewPwd: boolean = false;
   @State showConfirmPwd: boolean = false;
   @State isSaving: boolean = false;
+  @State isUploadingAvatar: boolean = false;
 
   @State majors: Major[] = [];
   @State isLoadingMajors: boolean = true;
@@ -229,8 +236,49 @@ struct MeEditPage {
     return name.charAt(0);
   }
 
-  private onChangeAvatar(): void {
-    ToastUtil.show('头像上传功能开发中');
+  private async onChangeAvatar(): Promise<void> {
+    if (this.isUploadingAvatar) return;
+    try {
+      const photoSelectOptions: picker.PhotoSelectOptions = new picker.PhotoSelectOptions();
+      photoSelectOptions.MIMEType = picker.PhotoViewMIMETypes.IMAGE_TYPE;
+      photoSelectOptions.maxSelectNumber = 1;
+      const photoViewPicker: picker.PhotoViewPicker = new picker.PhotoViewPicker();
+      const result= await photoViewPicker.select(photoSelectOptions);
+      const uris: string[] = result.photoUris;
+      if (!uris || uris.length === 0) {
+        return;
+      }
+      const uri: string = uris[0];
+      const file: fs.File = fs.openSync(uri, fs.OpenMode.READ_ONLY);
+      const stat: fs.Stat = fs.statSync(file.fd);
+      const buffer: ArrayBuffer = new ArrayBuffer(stat.size);
+      fs.readSync(file.fd, buffer);
+      fs.closeSync(file);
+
+      const fileName: string = this.extractFileName(uri);
+      this.isUploadingAvatar = true;
+      const res = await meRepository.uploadAvatar(buffer, fileName);
+      this.isUploadingAvatar = false;
+      if (res.success && res.data) {
+        this.form.avatarUrl = res.data;
+        ToastUtil.show(res.message || '头像更新成功');
+      } else if (res.code === 401) {
+        ToastUtil.show('登录已过期，请重新登录');
+        setTimeout(() => RouterUtil.toLogin(), 800);
+      } else {
+        ToastUtil.show(res.message || '头像上传失败');
+      }
+    } catch (e) {
+      this.isUploadingAvatar = false;
+      Logger.error(TAG, 'onChangeAvatar error', e as Error);
+      ToastUtil.show('选择照片失败');
+    }
+  }
+
+  private extractFileName(uri: string): string {
+    const decoded: string = decodeURIComponent(uri);
+    const lastSlash: number = decoded.lastIndexOf('/');
+    return lastSlash >= 0 ? decoded.substring(lastSlash + 1) : 'avatar.jpg';
   }
 
   private onChangeMajor(): void {
@@ -332,8 +380,18 @@ struct MeEditPage {
   AvatarSection() {
     Column({ space: 12 }) {
       Stack() {
-        if (this.form.avatarUrl && this.form.avatarUrl.length > 0) {
-          Row() {}
+        if (this.isUploadingAvatar) {
+          LoadingProgress()
+            .width(80)
+            .height(80)
+            .color('#FFFFFF')
+        } else if (this.form.avatarUrl && this.form.avatarUrl.length > 0) {
+          Image(this.form.avatarUrl)
+            .width(80)
+            .height(80)
+            .borderRadius(999)
+            .objectFit(ImageFit.Cover)
+            .border({ width: 3, color: 'rgba(255,255,255,0.6)' })
         } else {
           Text(this.avatarDisplayText())
             .fontSize(28)

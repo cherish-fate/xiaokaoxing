@@ -803,6 +803,10 @@ export interface UpdateUserMeRequest {
   confirm_new_password?: string;
 }
 
+export interface AvatarUploadResponse {
+  avatar_url: string;
+}
+
 // 2. 聚合统计
 export interface CheckinStatsSummary {
   continuous_days: number;
@@ -1672,6 +1676,18 @@ class ApiService {
   }
   async updateUserMe(req: UpdateUserMeRequest): Promise<ApiResponse<UserMeInfo>> {
     return this.request<UserMeInfo>('/api/users/me', http.RequestMethod.PUT, req, true);
+  }
+
+  async uploadAvatar(fileBuffer: ArrayBuffer, fileName: string): Promise<ApiResponse<AvatarUploadResponse>> {
+    return this.requestMultipart<AvatarUploadResponse>(
+      '/api/users/me/avatar',
+      fileBuffer,
+      fileName
+    );
+  }
+
+  async deleteAccount(): Promise<ApiResponse<null>> {
+    return this.request<null>('/api/users/me', http.RequestMethod.DELETE, null, true);
   }
 
   // 2. 聚合统计（打卡 + 学习数据 + 我的内容数量）

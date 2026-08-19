@@ -8,6 +8,8 @@ import {
   UploadResourceParams
 } from '../model/SharedResourceModel';
 import { LoadingView } from '../components/StateViews';
+import picker from '@ohos.file.picker';
+import fs from '@ohos.file.fs';
 
 const TAG = 'UploadResourcePage';
 const SUBJECT_LIST = ['高等数学', '大学英语', '线性代数', '数据结构', '大学物理', '计算机组成原理'];
@@ -48,17 +50,39 @@ struct UploadResourcePage {
     if (res.success && res.data) this.myUploads = res.data.list;
   }
 
-  // 文件选择（使用 picker 或 file 系统，这里提供占位实现）
-  private async pickFile() {
+  // 文件选择（使用系统文档选择器）
+  private async pickFile(): Promise<void> {
     try {
-      // 鸿蒙原生 ArkTS 文件选择示例（简化）
-      // 由于需要 @ohos.file.picker ，这里给用户提示，实际项目中需集成
-      ToastUtil.show('请选择要上传的文件（PDF/Word/PPT/ZIP ≤ 50MB）');
-      Logger.info(TAG, 'pickFile invoked - 需要根据真机环境接入file picker');
+      const documentSelectOptions: picker.DocumentSelectOptions = new picker.DocumentSelectOptions();
+      documentSelectOptions.maxSelectNumber = 1;
+      documentSelectOptions.fileSuffixFilters = ['.pdf', '.doc', '.docx', '.ppt', '.pptx', '.zip'];
+      const documentViewPicker: picker.DocumentViewPicker = new picker.DocumentViewPicker();
+      const uris: string[] = await documentViewPicker.select(documentSelectOptions);
+      if (!uris || uris.length === 0) {
+        return;
+      }
+      const uri: string = uris[0];
+      const file: fs.File = fs.openSync(uri, fs.OpenMode.READ_ONLY);
+      const stat: fs.Stat = fs.statSync(file.fd);
+      const buffer: ArrayBuffer = new ArrayBuffer(stat.size);
+      fs.readSync(file.fd, buffer);
+      fs.closeSync(file);
+
+      const fileName: string = this.extractFileName(uri);
+      this.fileName = fileName;
+      this.fileBuffer = buffer;
+      this.fileSizeBytes = stat.size;
+      ToastUtil.show(`已选择：${fileName}`);
     } catch (e) {
       Logger.error(TAG, 'pickFile error', e as Error);
       ToastUtil.show('选择文件失败');
     }
+  }
+
+  private extractFileName(uri: string): string {
+    const decoded: string = decodeURIComponent(uri);
+    const lastSlash: number = decoded.lastIndexOf('/');
+    return lastSlash >= 0 ? decoded.substring(lastSlash + 1) : decoded;
   }
 
   // 供外部/测试调用的 setFile 方法：

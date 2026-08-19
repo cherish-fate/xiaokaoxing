@@ -31,6 +31,7 @@
     "pages/MePage",
     "pages/MeEditPage",
     "pages/NotificationSettingsPage",
-    "pages/AboutPage"
+    "pages/AboutPage",
+    "pages/WebViewPage"
   ]
 }
