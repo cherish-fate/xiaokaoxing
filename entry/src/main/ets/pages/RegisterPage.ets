@@ -1,5 +1,9 @@
 import { promptAction, router } from '@kit.ArkUI';
 import { apiService, Major, RegisterRequest } from '../api/ApiService';
+import { meRepository } from '../repository/MeRepository';
+import { MeAboutInfoModel } from '../model/MeModel';
+import { RouterUtil } from '../utils/RouterUtil';
+import { RouteUrls } from '../utils/RouteUrls';
 
 interface MajorSelectorResult {
   index: number;
@@ -87,6 +91,8 @@ struct RegisterPage {
   @State majors: Major[] = [];
   @State isLoadingMajors: boolean = true;
   @State isSubmitting: boolean = false;
+  @State agreed: boolean = false;
+  @State aboutInfo: MeAboutInfoModel = MeAboutInfoModel.empty();
 
   private majorDialogController: CustomDialogController = new CustomDialogController({
     builder: MajorSelectorDialog({
@@ -106,6 +112,14 @@ struct RegisterPage {
 
   aboutToAppear(): void {
     this.loadMajors();
+    this.loadAboutInfo();
+  }
+
+  private async loadAboutInfo(): Promise<void> {
+    const res = await meRepository.loadAboutInfo();
+    if (res.success && res.data) {
+      this.aboutInfo = res.data;
+    }
   }
 
   private async loadMajors(): Promise<void> {
@@ -135,6 +149,11 @@ struct RegisterPage {
 
   private async handleRegister(): Promise<void> {
     if (this.isSubmitting) {
+      return;
+    }
+
+    if (!this.agreed) {
+      this.showToast('请先阅读并同意用户协议和隐私政策');
       return;
     }
 
@@ -193,6 +212,30 @@ struct RegisterPage {
       this.showToast('网络请求失败，请稍后重试');
     } finally {
       this.isSubmitting = false;
+    }
+  }
+
+  private openTerms(): void {
+    if (this.aboutInfo.termsUrl && this.aboutInfo.termsUrl.length > 0) {
+      const params: Record<string, Object> = {
+        'title': '用户协议',
+        'url': this.aboutInfo.termsUrl
+      };
+      RouterUtil.pushWithParams(RouteUrls.WEB_VIEW, params);
+    } else {
+      this.showToast('《用户协议》暂未上线');
+    }
+  }
+
+  private openPrivacy(): void {
+    if (this.aboutInfo.privacyUrl && this.aboutInfo.privacyUrl.length > 0) {
+      const params: Record<string, Object> = {
+        'title': '隐私政策',
+        'url': this.aboutInfo.privacyUrl
+      };
+      RouterUtil.pushWithParams(RouteUrls.WEB_VIEW, params);
+    } else {
+      this.showToast('《隐私政策》暂未上线');
     }
   }
 
@@ -316,6 +359,41 @@ struct RegisterPage {
               .backgroundColor($r('app.color.card_bg'))
               .borderRadius(16)
               .padding({ left: 16, right: 16 })
+
+            Row({ space: 8 }) {
+              Row() {
+                if (this.agreed) {
+                  Text('✓')
+                    .fontSize(12)
+                    .fontColor(Color.White)
+                    .fontWeight(FontWeight.Bold)
+                }
+              }
+              .width(18)
+              .height(18)
+              .borderRadius(4)
+              .justifyContent(FlexAlign.Center)
+              .border({ width: 1, color: this.agreed ? $r('app.color.primary_color') : $r('app.color.text_hint') })
+              .backgroundColor(this.agreed ? $r('app.color.primary_color') : Color.Transparent)
+              .onClick(() => { this.agreed = !this.agreed; })
+
+              Text('我已阅读并同意')
+                .fontSize(13)
+                .fontColor($r('app.color.text_secondary'))
+              Text('《用户协议》')
+                .fontSize(13)
+                .fontColor($r('app.color.primary_color'))
+                .onClick(() => this.openTerms())
+              Text('和')
+                .fontSize(13)
+                .fontColor($r('app.color.text_secondary'))
+              Text('《隐私政策》')
+                .fontSize(13)
+                .fontColor($r('app.color.primary_color'))
+                .onClick(() => this.openPrivacy())
+            }
+            .width('100%')
+            .margin({ top: 4 })
 
             Button(this.isSubmitting ? '注册中...' : $r('app.string.register_button'))
               .width('100%')

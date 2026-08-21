@@ -98,8 +98,7 @@ export struct HotTeamCard {
           .fontSize(14)
           .fontColor(AppColors.PRIMARY)
           .borderRadius(10)
-          .onClick(() => RouterUtil.push(RouteUrls.COMMUNITY_TEAM_DETAIL,
-            { "id": team.id }))
+          .onClick(() => RouterUtil.push(RouteUrls.COMMUNITY_TEAM_DETAIL))
       } else if (team.isMember) {
         // 已加入的小队：显示"已加入"标签
         Row({ space: 6 }) {
@@ -143,8 +142,7 @@ export struct HotTeamCard {
     .padding(AppSize.PADDING_LG)
     .backgroundColor('#FAFBFD')
     .borderRadius(AppSize.RADIUS_MD)
-    .onClick(() => RouterUtil.push(RouteUrls.COMMUNITY_TEAM_DETAIL,
-      { "id": team.id }))
+    .onClick(() => RouterUtil.push(RouteUrls.COMMUNITY_TEAM_DETAIL))
   }
 
   @Builder

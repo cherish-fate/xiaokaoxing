@@ -62,7 +62,7 @@ struct VotePage {
     const oldItem: VoteItemModel = this.list[idx];
     const optimistic: VoteItemModel = new VoteItemModel(
       oldItem.id, oldItem.subject, oldItem.title, oldItem.description,
-      oldItem.voteCount + 1, oldItem.confidence, oldItem.stars, true
+      oldItem.voteCount + 1, oldItem.confidence, oldItem.stars, true, oldItem.totalUsers
     );
     this.list = this.list.map((v, i) => i === idx ? optimistic : v);
     const res = await voteRepository.voteFor(voteId);
@@ -73,7 +73,7 @@ struct VotePage {
         // 已投过：保持已投状态，但票数回退
         const voted: VoteItemModel = new VoteItemModel(
           oldItem.id, oldItem.subject, oldItem.title, oldItem.description,
-          oldItem.voteCount, oldItem.confidence, oldItem.stars, true
+          oldItem.voteCount, oldItem.confidence, oldItem.stars, true, oldItem.totalUsers
         );
         this.list = this.list.map((v, i) => i === idx ? voted : v);
       } else {
@@ -86,13 +86,13 @@ struct VotePage {
     // 成功：用服务端返回的真实数据更新
     const updated: VoteItemModel = new VoteItemModel(
       optimistic.id, optimistic.subject, optimistic.title, optimistic.description,
-      res.data.voteCount, res.data.confidence, optimistic.stars, true
+      res.data.voteCount, res.data.confidence, optimistic.stars, true, optimistic.totalUsers
     );
     this.list = this.list.map((v, i) => i === idx ? updated : v);
     // 我的投票记录立即增加一条
     const newRecord: MyVoteRecordModel = new MyVoteRecordModel(
       voteId, oldItem.subject, oldItem.title, res.data.voteCount, res.data.confidence,
-      DateUtil.toShortDateTime(new Date().toISOString()), '会考'
+      DateUtil.toShortDateTime(new Date().toISOString()), '会考', oldItem.totalUsers
     );
     this.myVotes = [newRecord, ...this.myVotes];
     ToastUtil.show('投票成功');
@@ -214,16 +214,15 @@ struct VotePage {
 
       Row({ space: 10 }) {
         Row()
+          .width(`${v.confidenceWidth()}%`)
+          .height(6)
+          .backgroundColor(v.barColor())
+          .borderRadius(3)
+        Row()
           .layoutWeight(1)
           .height(6)
           .backgroundColor('#EEF0F3')
           .borderRadius(3)
-        Row()
-          .width(`${Math.min(100, v.confidence)}%`)
-          .height(6)
-          .backgroundColor(v.barColor())
-          .borderRadius(3)
-
       }
       .width('100%')
 
@@ -231,7 +230,7 @@ struct VotePage {
         Text(v.starsText())
           .fontSize(13)
           .fontColor('#FFB800')
-        Text(`${Math.round(v.confidence)}% 认为会考`)
+        Text(`${v.computedConfidence()}% 认为会考`)
           .fontSize(12)
           .fontColor(AppColors.TEXT_HINT)
           .layoutWeight(1)
@@ -339,14 +338,14 @@ struct VotePage {
 
       Row({ space: 10 }) {
         Row()
+          .width(`${r.confidenceWidth()}%`)
+          .height(6)
+          .backgroundColor(r.barColor())
+          .borderRadius(3)
+        Row()
           .layoutWeight(1)
           .height(6)
           .backgroundColor('#EEF0F3')
-          .borderRadius(3)
-        Row()
-          .width(`${Math.min(100, r.confidence)}%`)
-          .height(6)
-          .backgroundColor(r.barColor())
           .borderRadius(3)
       }
       .width('100%')
@@ -355,7 +354,7 @@ struct VotePage {
         Text(`你投了：${r.myChoice}`)
           .fontSize(12)
           .fontColor(AppColors.TEXT_SECONDARY)
-        Text(`${Math.round(r.confidence)}% 同意`)
+        Text(`${r.computedConfidence()}% 同意`)
           .fontSize(12)
           .fontColor(AppColors.TEXT_HINT)
           .layoutWeight(1)

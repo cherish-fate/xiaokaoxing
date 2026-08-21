@@ -32,7 +32,7 @@ import { DateUtil } from '../utils/DateUtil';
 const TAG = 'VoteRepository';
 
 export class VoteRepository {
-  private mapVoteItem(v: VoteItem): VoteItemModel {
+  private mapVoteItem(v: VoteItem, totalUsers: number): VoteItemModel {
     return new VoteItemModel(
       v.id,
       v.subject || '',
@@ -41,11 +41,12 @@ export class VoteRepository {
       v.vote_count || 0,
       v.confidence || 0,
       v.stars || 0,
-      !!v.has_voted
+      !!v.has_voted,
+      totalUsers
     );
   }
 
-  private mapMyVoteRecord(r: MyVoteRecord): MyVoteRecordModel {
+  private mapMyVoteRecord(r: MyVoteRecord, totalUsers: number): MyVoteRecordModel {
     return new MyVoteRecordModel(
       r.vote_id,
       r.subject || '',
@@ -53,7 +54,8 @@ export class VoteRepository {
       r.vote_count || 0,
       r.confidence || 0,
       r.voted_at ? DateUtil.toShortDateTime(r.voted_at) : '',
-      r.my_choice || '会考'
+      r.my_choice || '会考',
+      totalUsers
     );
   }
 
@@ -89,7 +91,7 @@ export class VoteRepository {
     if (res.code !== 200 || !res.data) {
       return ResultUtil.fail<VoteListModel>(res.code, res.message || '投票列表加载失败');
     }
-    const list: VoteItemModel[] = (res.data.list || []).map(v => this.mapVoteItem(v));
+    const list: VoteItemModel[] = (res.data.list || []).map(v => this.mapVoteItem(v, res.data!.total_users || 0));
     return ResultUtil.success(new VoteListModel(list));
   }
 
@@ -154,7 +156,7 @@ export class VoteRepository {
     if (res.code !== 200 || !res.data) {
       return ResultUtil.fail<MyVoteListModel>(res.code, res.message || '我的投票记录加载失败');
     }
-    const list = (res.data.list || []).map(r => this.mapMyVoteRecord(r));
+    const list = (res.data.list || []).map(r => this.mapMyVoteRecord(r, res.data!.total_users || 0));
     return ResultUtil.success(new MyVoteListModel(list));
   }
 

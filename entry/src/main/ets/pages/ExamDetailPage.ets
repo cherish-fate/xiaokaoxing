@@ -428,14 +428,19 @@ struct ExamDetailPage {
         .backgroundColor(AppColors.CARD)
         .borderRadius(20)
         .onClick(() => this.handleClose())
-      Blank()
+
       Text('考试详情')
         .fontSize(18)
         .fontWeight(FontWeight.Bold)
         .fontColor(AppColors.TEXT_PRIMARY)
-        .margin({ left: 12 })
+        .layoutWeight(1)
+        .textAlign(TextAlign.Center)
+        .maxLines(1)
+        .textOverflow({ overflow: TextOverflow.Ellipsis })
 
-      Blank()
+      Row()
+        .width(40)
+        .height(40)
     }
     .width('100%')
     .padding({ left: 20, right: 20, top: 12, bottom: 12 })
@@ -539,8 +544,6 @@ struct ExamDetailPage {
               Text(this.formatDate(this.examDate))
                 .fontSize(12)
                 .fontColor('rgba(255,255,255,0.85)')
-
-
 
               Text(this.timeRangeText())
                 .fontSize(12)

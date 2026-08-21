@@ -77,6 +77,7 @@ export class VoteItemModel {
   confidence: number;
   stars: number;
   hasVoted: boolean;
+  totalUsers: number;
 
   constructor(
     id: number,
@@ -86,7 +87,8 @@ export class VoteItemModel {
     voteCount: number,
     confidence: number,
     stars: number,
-    hasVoted: boolean
+    hasVoted: boolean,
+    totalUsers: number = 0
   ) {
     this.id = id;
     this.subject = subject;
@@ -96,20 +98,29 @@ export class VoteItemModel {
     this.confidence = confidence;
     this.stars = stars;
     this.hasVoted = hasVoted;
+    this.totalUsers = totalUsers;
   }
 
   toHotVote(): HotVoteModel {
     return new HotVoteModel(
-      this.id, this.subject, this.title, this.voteCount, this.confidence, this.stars
+      this.id, this.subject, this.title, this.voteCount, this.confidence, this.stars, this.totalUsers
     );
   }
 
+  // 置信度：优先用 (voteCount / totalUsers) * 100 计算，totalUsers 为 0 时回退到后端 confidence
+  computedConfidence(): number {
+    if (this.totalUsers > 0) {
+      return Math.round((this.voteCount / this.totalUsers) * 100);
+    }
+    return Math.round(this.confidence);
+  }
+
   confidencePercent(): string {
-    return `${this.confidence.toFixed(0)}%`;
+    return `${this.computedConfidence()}%`;
   }
 
   confidenceWidth(): number {
-    return Math.max(5, Math.min(100, this.confidence));
+    return Math.max(5, Math.min(100, this.computedConfidence()));
   }
 
   starsText(): string {
@@ -159,6 +170,7 @@ export class MyVoteRecordModel {
   confidence: number;
   votedAt: string;
   myChoice: string; // '会考' | '不会考'
+  totalUsers: number;
 
   constructor(
     voteId: number,
@@ -167,7 +179,8 @@ export class MyVoteRecordModel {
     voteCount: number,
     confidence: number,
     votedAt: string,
-    myChoice: string = '会考'
+    myChoice: string = '会考',
+    totalUsers: number = 0
   ) {
     this.voteId = voteId;
     this.subject = subject;
@@ -176,10 +189,23 @@ export class MyVoteRecordModel {
     this.confidence = confidence;
     this.votedAt = votedAt;
     this.myChoice = myChoice;
+    this.totalUsers = totalUsers;
+  }
+
+  // 置信度：优先用 (voteCount / totalUsers) * 100 计算，totalUsers 为 0 时回退到后端 confidence
+  computedConfidence(): number {
+    if (this.totalUsers > 0) {
+      return Math.round((this.voteCount / this.totalUsers) * 100);
+    }
+    return Math.round(this.confidence);
   }
 
   confidencePercent(): string {
-    return `${this.confidence.toFixed(1)}%`;
+    return `${this.computedConfidence()}%`;
+  }
+
+  confidenceWidth(): number {
+    return Math.max(5, Math.min(100, this.computedConfidence()));
   }
 
   tagBg(): string {
@@ -265,6 +291,24 @@ export class MySubmissionModel {
     if (this.isApproved()) return '✓ 已通过';
     if (this.isRejected()) return '✕ 未通过';
     return '⏳ 审核中';
+  }
+
+  tagBg(): string {
+    if (this.subject.indexOf('高数') >= 0 || this.subject.indexOf('数学') >= 0) return '#E8F0FF';
+    if (this.subject.indexOf('线代') >= 0) return '#F5F0FF';
+    if (this.subject.indexOf('数据结构') >= 0 || this.subject.indexOf('计科') >= 0) return '#FFF7ED';
+    if (this.subject.indexOf('物理') >= 0) return '#FFF0F0';
+    if (this.subject.indexOf('英语') >= 0) return '#E6F7F5';
+    return '#E6F7F5';
+  }
+
+  tagColor(): string {
+    if (this.subject.indexOf('高数') >= 0) return '#4A7FFF';
+    if (this.subject.indexOf('线代') >= 0) return '#7330D1';
+    if (this.subject.indexOf('数据结构') >= 0) return '#FF7E02';
+    if (this.subject.indexOf('物理') >= 0) return '#F54141';
+    if (this.subject.indexOf('英语') >= 0) return '#38CFC9';
+    return '#38CFC9';
   }
 }
 

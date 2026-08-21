@@ -27,8 +27,18 @@ struct NoteListPage {
   @State actionMenuPosY: number = 0;
   private isDeleting: boolean = false;
   private isTogglingPin: boolean = false;
+  private isFirstShow: boolean = true;
 
   aboutToAppear(): void {
+    this.loadData();
+  }
+
+  onPageShow(): void {
+    if (this.isFirstShow) {
+      this.isFirstShow = false;
+      return;
+    }
+    // 从笔记编辑页返回时刷新列表，确保新建/修改的笔记能显示
     this.loadData();
   }
 

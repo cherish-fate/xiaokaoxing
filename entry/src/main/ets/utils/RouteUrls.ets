@@ -20,6 +20,7 @@ export class RouteUrls {
   static readonly COMMUNITY_TEAM_DETAIL: string = 'pages/TeamDetailPage';
   static readonly COMMUNITY_VOTE: string = 'pages/VotePage';
   static readonly COMMUNITY_UPLOAD: string = 'pages/UploadResourcePage';
+  static readonly MY_SUBMISSIONS: string = 'pages/MySubmissionsPage';
   static readonly TOOL: string = 'pages/ToolPage';
   static readonly DAILY_QUESTION: string = 'pages/DailyQuestionPage';
   static readonly DAILY_QUESTION_RESULT: string = 'pages/DailyQuestionResultPage';

@@ -20,16 +20,16 @@ import { Logger } from '../utils/Logger';
 const TAG = 'CommunityRepository';
 
 export class CommunityRepository {
-  private mapCheckinStats(s: CheckinStats): CheckinStatsModel {
+  private mapCheckinStats(s: CheckinStats, checkedWeekDays: number[]): CheckinStatsModel {
     return new CheckinStatsModel(
       s.total_days || 0,
       s.continuous_days || 0,
       s.rank || 0,
-      s.checked_week_days || []
+      checkedWeekDays
     );
   }
 
-  private mapHotVote(v: HotVote): HotVoteModel {
+  private mapHotVote(v: HotVote, totalUsers: number): HotVoteModel {
     return new HotVoteModel(
       v.id,
       v.subject || '',
@@ -37,7 +37,7 @@ export class CommunityRepository {
       v.vote_count || 0,
       v.confidence || 0,
       v.stars || 0,
-      v.total_users || 0
+      totalUsers
     );
   }
 
@@ -77,15 +77,18 @@ export class CommunityRepository {
         res.message || '社区主页数据加载失败'
       );
     }
+    const topTotalUsers: number = res.data.total_users || 0;
+    const topCheckedWeekDays: number[] = res.data.checked_week_days || [];
     const stats: CheckinStatsModel = this.mapCheckinStats(
-      res.data.checkin_stats || { total_days: 0, continuous_days: 0, rank: 0 }
+      res.data.checkin_stats || { total_days: 0, continuous_days: 0, rank: 0 },
+      topCheckedWeekDays
     );
-    const hotVotes: HotVoteModel[] = (res.data.hot_votes || []).map(v => this.mapHotVote(v));
+    const hotVotes: HotVoteModel[] = (res.data.hot_votes || []).map(v => this.mapHotVote(v, topTotalUsers));
     const hotTeams: HotTeamModel[] = (res.data.hot_teams || []).map(t => this.mapHotTeam(t));
     const latestResources: CommunityResourceModel[] = (res.data.latest_resources || [])
       .map(r => this.mapCommunityResource(r));
 
-    const model = new CommunityHomePageModel(stats, hotVotes, hotTeams, latestResources);
+    const model = new CommunityHomePageModel(stats, hotVotes, hotTeams, latestResources, topTotalUsers, topCheckedWeekDays);
     Logger.info(TAG, '社区主页数据加载成功');
     return ResultUtil.success(model);
   }

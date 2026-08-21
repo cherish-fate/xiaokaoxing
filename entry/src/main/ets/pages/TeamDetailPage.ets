@@ -15,6 +15,7 @@ import {
 struct TeamDetailPage {
   @State pageState: string = 'LOADING';
   @State teamId: number = 0;
+  @State useMyTeam: boolean = false; // 无参模式：加载当前登录用户的第一个小队
   @State detail: TeamDetailModel = TeamDetailModel.empty();
   @State applications: ApplicationsModel = ApplicationsModel.empty();
   @State showApplications: boolean = false;
@@ -32,6 +33,9 @@ struct TeamDetailPage {
     const params = RouterUtil.getParams();
     if (params && params['id'] !== undefined) {
       this.teamId = Number(params['id']);
+    } else {
+      // 无参模式：由详情页自己加载"我的小队"
+      this.useMyTeam = true;
     }
     await this.load();
   }
@@ -42,23 +46,34 @@ struct TeamDetailPage {
       return;
     }
     // 从子页面返回时刷新数据
-    if (this.teamId) {
-      this.load();
-    }
+    this.load();
   }
 
   private async load() {
-    if (!this.teamId) {
-      this.pageState = 'ERROR';
-      return;
+    // 无参模式且尚未拿到 teamId：先走"我的小队"接口取第一个小队详情
+    if (this.useMyTeam && !this.teamId) {
+      const myRes = await teamRepository.loadMyTeamDetail();
+      if (myRes.code === 401) { setTimeout(() => RouterUtil.toLogin(), 800); return; }
+      if (myRes.code === 404) { ToastUtil.show(myRes.message || '你还没有加入任何小队'); RouterUtil.back(); return; }
+      if (myRes.success && myRes.data) {
+        this.detail = myRes.data;
+        this.teamId = myRes.data.id; // 记住 id，后续刷新直接用
+      } else {
+        ToastUtil.show(myRes.message || '加载失败');
+      }
+    } else {
+      if (!this.teamId) {
+        this.pageState = 'ERROR';
+        return;
+      }
+      const res = await teamRepository.loadTeamDetail(this.teamId);
+      if (res.code === 401) { setTimeout(() => RouterUtil.toLogin(), 800); return; }
+      if (res.code === 404) { ToastUtil.show(res.message || '小队不存在'); RouterUtil.back(); return; }
+      if (res.success && res.data) this.detail = res.data;
+      else ToastUtil.show(res.message || '加载失败');
     }
-    const res = await teamRepository.loadTeamDetail(this.teamId);
-    if (res.code === 401) { setTimeout(() => RouterUtil.toLogin(), 800); return; }
-    if (res.code === 404) { ToastUtil.show(res.message || '小队不存在'); RouterUtil.back(); return; }
-    if (res.success && res.data) this.detail = res.data;
-    else ToastUtil.show(res.message || '加载失败');
 
-    if (this.detail.isCreator) {
+    if (this.detail.isCreator && this.teamId) {
       const ap = await teamRepository.loadApplications(this.teamId);
       if (ap.success && ap.data) this.applications = ap.data;
     }
@@ -116,6 +131,23 @@ struct TeamDetailPage {
       }
     };
     this.showConfirm = true;
+  }
+
+  @Builder
+  LoadingView() {
+    Column() {
+      LoadingProgress()
+        .width(32)
+        .height(32)
+        .color(AppColors.PRIMARY)
+        .margin({ bottom: AppSize.PADDING_MD });
+      Text('加载中...')
+        .fontSize(14)
+        .fontColor(AppColors.TEXT_SECONDARY);
+    }
+    .width('100%')
+    .height('100%')
+    .justifyContent(FlexAlign.Center);
   }
 
   @Builder
@@ -188,7 +220,7 @@ struct TeamDetailPage {
     .width('100%')
     .padding(AppSize.PADDING_LG)
     .backgroundColor(Color.White)
-    .borderRadius(AppSize.RADIUS_LG)
+    .borderRadius({topLeft:AppSize.RADIUS_LG,topRight:AppSize.RADIUS_LG})
   }
 
   @Builder
@@ -238,7 +270,7 @@ struct TeamDetailPage {
     .width('100%')
     .padding(AppSize.PADDING_MD)
     .backgroundColor(Color.White)
-    .borderRadius(AppSize.RADIUS_LG)
+    .borderRadius({bottomLeft:AppSize.RADIUS_LG,bottomRight:AppSize.RADIUS_LG})
   }
 
   @Builder
@@ -423,16 +455,24 @@ struct TeamDetailPage {
       Column() {
         this.Header()
         if (this.pageState === 'LOADING') {
-          Column() { LoadingProgress().color(AppColors.PRIMARY) }
+          Column() {
+            this.LoadingView()
+          }
             .layoutWeight(1).width('100%').justifyContent(FlexAlign.Center)
             .backgroundColor(AppColors.BG)
         } else {
           Scroll() {
-            Column({ space: 14 }) {
-              this.TeamHead()
-              this.ActionBar()
-              this.TabBar()
-              if (this.tab === 0) this.MemberList(); else this.InfoPanel()
+            Column({space:10}) {
+              Column(){
+                this.TeamHead()
+                Divider()
+                this.ActionBar()
+              }
+              Column({space:10}){
+                this.TabBar()
+                if (this.tab === 0) this.MemberList(); else this.InfoPanel()
+              }
+
             }
             .width('100%')
             .padding(AppSize.PADDING_MD)

@@ -89,6 +89,16 @@ struct GpaPage {
       calc = calcRes.data;
     }
 
+    // 用标准公式本地计算绩点：GPA = Σ(学分×绩点) / Σ学分（仅含已取得绩点的课程）
+    // 覆盖后端返回的 currentGpa，确保按用户指定的公式计算
+    const localGpa: number = GpaPageModel.computeGpa(courses);
+    if (localGpa > 0) {
+      calc = new GpaCalculateModel(
+        calc.algorithm, localGpa, calc.totalCredits, calc.targets, calc.warnings,
+        calc.failedCourses, calc.failedCredits
+      );
+    }
+
     // 创建新对象确保 @State 引用变化，触发 ForEach 等 UI 立即刷新
     this.model = new GpaPageModel(
       this.model.semesters, this.model.currentSemesterId, semesterName, courses, calc

@@ -11,17 +11,23 @@ export class CommunityHomePageModel {
   hotVotes: HotVoteModel[];
   hotTeams: HotTeamModel[];
   latestResources: CommunityResourceModel[];
+  totalUsers: number;
+  checkedWeekDays: number[];
 
   constructor(
     checkinStats: CheckinStatsModel,
     hotVotes: HotVoteModel[],
     hotTeams: HotTeamModel[],
-    latestResources: CommunityResourceModel[]
+    latestResources: CommunityResourceModel[],
+    totalUsers: number = 0,
+    checkedWeekDays: number[] = []
   ) {
     this.checkinStats = checkinStats;
     this.hotVotes = hotVotes;
     this.hotTeams = hotTeams;
     this.latestResources = latestResources;
+    this.totalUsers = totalUsers;
+    this.checkedWeekDays = checkedWeekDays;
   }
 
   static empty(): CommunityHomePageModel {
@@ -29,6 +35,8 @@ export class CommunityHomePageModel {
       new CheckinStatsModel(0, 0, 0),
       [],
       [],
+      [],
+      0,
       []
     );
   }

@@ -321,4 +321,17 @@ export class GpaPageModel {
   courseCountText(): string {
     return `${this.courses.length} 门`;
   }
+
+  // 标准公式本地计算 GPA：GPA = Σ(学分 × 绩点) / Σ学分（仅含已取得绩点的课程）
+  static computeGpa(courses: CourseModel[]): number {
+    let totalCreditSum: number = 0;
+    let weightedGpaSum: number = 0;
+    for (let i = 0; i < courses.length; i++) {
+      if (courses[i].gpa > 0) {
+        totalCreditSum += courses[i].credit;
+        weightedGpaSum += courses[i].credit * courses[i].gpa;
+      }
+    }
+    return totalCreditSum > 0 ? weightedGpaSum / totalCreditSum : 0;
+  }
 }

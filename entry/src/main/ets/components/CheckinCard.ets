@@ -37,40 +37,34 @@ export struct CheckinCard {
   }
 
   private isDayChecked(day: WeekDay): boolean {
+    if (this.checkinStats.checkedWeekDays.indexOf(day.dayIndex) >= 0) {
+      return true;
+    }
     if (day.isToday) {
       return this.todayModel.hasCheckedIn;
-    }
-    if (day.isPast) {
-      return this.checkinStats.checkedWeekDays.indexOf(day.dayIndex) >= 0;
     }
     return false;
   }
 
   private getDayBackgroundColor(day: WeekDay): ResourceColor {
-    if (day.isToday && this.todayModel.hasCheckedIn) {
-      return AppColors.PRIMARY;
-    }
-    if (!day.isToday && day.isPast && this.isDayChecked(day)) {
+    if (this.isDayChecked(day)) {
       return AppColors.PRIMARY;
     }
     return Color.Transparent;
   }
 
   private getDayBorderColor(day: WeekDay): ResourceColor {
-    if (day.isToday && !this.todayModel.hasCheckedIn) {
+    if (day.isToday && !this.isDayChecked(day)) {
       return AppColors.PRIMARY;
     }
     return Color.Transparent;
   }
 
   private getDayTextColor(day: WeekDay): ResourceColor {
-    if (day.isToday && this.todayModel.hasCheckedIn) {
+    if (this.isDayChecked(day)) {
       return Color.White;
     }
-    if (!day.isToday && day.isPast && this.isDayChecked(day)) {
-      return Color.White;
-    }
-    if (day.isToday && !this.todayModel.hasCheckedIn) {
+    if (day.isToday && !this.isDayChecked(day)) {
       return AppColors.PRIMARY;
     }
     return AppColors.TEXT_SECONDARY;
@@ -133,7 +127,7 @@ export struct CheckinCard {
             .justifyContent(FlexAlign.Center)
             .backgroundColor(this.getDayBackgroundColor(day))
             .border({
-              width: day.isToday && !this.todayModel.hasCheckedIn ? 1 : 0,
+              width: (day.isToday && !this.isDayChecked(day)) ? 1 : 0,
               color: this.getDayBorderColor(day)
             })
           }

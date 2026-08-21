@@ -1,23 +1,19 @@
 @Entry
 @Component
-struct ResourceDetailPage {
-  @State message: string = 'Hello World';
-
+struct AvatarPage {
   build() {
-    RelativeContainer() {
-      Text(this.message)
-        .id('ResourceDetailPageHelloWorld')
-        .fontSize($r('app.float.page_text_font_size'))
-        .fontWeight(FontWeight.Bold)
-        .alignRules({
-          center: { anchor: '__container__', align: VerticalAlign.Center },
-          middle: { anchor: '__container__', align: HorizontalAlign.Center }
-        })
-        .onClick(() => {
-          this.message = 'Welcome';
+    Column() {
+      Image('http://10.0.2.2:3000/uploads/avatar_1787107040287396600.jpg')
+        .width(120)
+        .height(120)
+        .borderRadius(60)
+        .objectFit(ImageFit.Cover)
+        .onError((err) => {
+          console.error(`图片加载失败: ${JSON.stringify(err)}`);
         })
     }
-    .height('100%')
     .width('100%')
+    .height('100%')
+    .justifyContent(FlexAlign.Center)
   }
 }

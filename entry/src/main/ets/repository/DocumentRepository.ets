@@ -3,7 +3,8 @@ import {
   ApiResponse,
   DocumentListResponse,
   DocumentItem,
-  UpdateDocOfflineResponse
+  UpdateDocOfflineResponse,
+  DocumentFromResourceResponse
 } from '../api/ApiService';
 import { DocumentItemModel, DocumentListModel } from '../model/DocumentModel';
 import { ResultUtil, AsyncResult } from '../utils/ResultUtil';
@@ -14,6 +15,11 @@ const TAG: string = 'DocumentRepository';
 interface DocOfflineResult {
   id: number;
   isOffline: boolean;
+}
+
+interface DocFromResourceResult {
+  documentId: number;
+  alreadyExists: boolean;
 }
 
 export class DocumentRepository {
@@ -66,6 +72,36 @@ export class DocumentRepository {
       return ResultUtil.fail<null>(res.code, res.message || '删除文档失败');
     }
     Logger.info(TAG, `文档${id}删除成功`);
+    return ResultUtil.success(null);
+  }
+
+  async createFromResource(resourceId: number): Promise<AsyncResult<DocFromResourceResult>> {
+    const res: ApiResponse<DocumentFromResourceResponse> =
+      await apiService.createDocumentFromResource(resourceId);
+    if (res.code === 401) {
+      return ResultUtil.fail<DocFromResourceResult>(401, res.message || '登录已过期');
+    }
+    if (res.code !== 200 || !res.data) {
+      return ResultUtil.fail<DocFromResourceResult>(res.code, res.message || '同步到文档库失败');
+    }
+    const result: DocFromResourceResult = {
+      documentId: res.data.document_id || 0,
+      alreadyExists: !!res.data.already_exists
+    };
+    Logger.info(TAG, `资源${resourceId}同步到文档库成功，documentId=${result.documentId}，alreadyExists=${result.alreadyExists}`);
+    return ResultUtil.success(result);
+  }
+
+  // 取消收藏时，按 resource_id 删除文档库中对应文档
+  async deleteFromResource(resourceId: number): Promise<AsyncResult<null>> {
+    const res: ApiResponse<null> = await apiService.deleteDocumentFromResource(resourceId);
+    if (res.code === 401) {
+      return ResultUtil.fail<null>(401, res.message || '登录已过期');
+    }
+    if (res.code !== 200 && res.code !== 404) {
+      return ResultUtil.fail<null>(res.code, res.message || '从文档库删除失败');
+    }
+    Logger.info(TAG, `资源${resourceId}对应文档已从文档库删除`);
     return ResultUtil.success(null);
   }
 }

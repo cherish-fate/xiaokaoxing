@@ -40,9 +40,6 @@ export class HomeRepository {
       cd.countdown_text || ''
     );
 
-    const tp = data.today_progress;
-    const progress = new TodayProgressModel(tp.completed || 0, tp.total || 0, tp.progress_percentage || 0);
-
     const recentExams: ExamModel[] = (data.recent_exams || []).map(item => new ExamModel(
       item.id,
       item.name,
@@ -58,10 +55,17 @@ export class HomeRepository {
 
     // 额外请求完整考试列表替换首页的3条限制
     let allExams: ExamModel[] = recentExams;
+    let examTotal: number = recentExams.length;
     const examResult = await examRepository.fetchExams(50, '');
     if (examResult.success && examResult.data) {
-      allExams = examResult.data;
+      allExams = examResult.data.list;
+      examTotal = examResult.data.total;
     }
+
+    // 考试进度从考试列表本地计算，标记完成后返回首页刷新即可同步
+    const examCompleted: number = allExams.filter((e: ExamModel) => e.isCompleted).length;
+    const examPercentage: number = examTotal > 0 ? Math.floor(examCompleted / examTotal * 100) : 0;
+    const progress = new TodayProgressModel(examCompleted, examTotal, examPercentage);
 
     const taskList: TaskModel[] = (data.today_tasks || []).map(item =>
       new TaskModel(item.id, item.task_name, item.plan_date, item.is_completed)
@@ -72,7 +76,7 @@ export class HomeRepository {
       taskList.length,
       completedCount,
       taskList,
-      '今日暂无任务，去备考页添加学习计划吧'
+      '今日暂无任务，开始添加学习计划吧'
     );
 
     const resources: ResourceModel[] = (data.recommended_resources || []).map(item =>

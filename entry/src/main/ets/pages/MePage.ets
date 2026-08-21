@@ -81,7 +81,7 @@ struct MePage {
   }
 
   private goToMyUploads(): void {
-    RouterUtil.push(RouteUrls.COMMUNITY_UPLOAD, { "tab": '1' })
+    RouterUtil.pushWithParams(RouteUrls.COMMUNITY_UPLOAD, { "tab": '1' })
   }
 
   private goToMyVotes(): void {
@@ -89,7 +89,7 @@ struct MePage {
   }
 
   private goToMySubmissions(): void {
-    RouterUtil.push(RouteUrls.COMMUNITY_VOTE)
+    RouterUtil.push(RouteUrls.MY_SUBMISSIONS)
   }
 
   private goToMyTeams(): void {

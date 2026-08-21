@@ -5,7 +5,6 @@ import { RouterUtil } from '../utils/RouterUtil';
 @Component
 export struct GreetingBar {
   @Prop greetingText: string = '早安，同学';
-  @Prop avatarUrl: string = '';
 
   build() {
     Row() {
@@ -15,13 +14,6 @@ export struct GreetingBar {
             .fontSize(24)
             .fontWeight(FontWeight.Bold)
             .fontColor(AppColors.TEXT_PRIMARY)
-        }
-        if (this.avatarUrl.length > 0) {
-          Image(this.avatarUrl)
-            .width(40)
-            .height(40)
-            .borderRadius(20)
-            .objectFit(ImageFit.Cover)
         }
       }
       .alignItems(HorizontalAlign.Start)

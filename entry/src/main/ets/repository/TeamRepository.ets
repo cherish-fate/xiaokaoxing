@@ -10,7 +10,8 @@ import {
   JoinResponse,
   ApplicationsResponse,
   JoinApplication,
-  ApplicationProcessResponse
+  ApplicationProcessResponse,
+  MyTeamsListResponse
 } from '../api/ApiService';
 import {
   TeamListModel,
@@ -150,6 +151,19 @@ export class TeamRepository {
       members
     );
     return ResultUtil.success(model);
+  }
+
+  // 无参模式：先取"我的小队"列表的第一个 id，再加载该小队详情
+  async loadMyTeamDetail(): Promise<AsyncResult<TeamDetailModel>> {
+    const listRes: ApiResponse<MyTeamsListResponse> = await apiService.fetchMyTeams();
+    if (listRes.code === 401) {
+      return ResultUtil.fail<TeamDetailModel>(401, listRes.message || '登录已过期');
+    }
+    if (listRes.code !== 200 || !listRes.data || !listRes.data.list || listRes.data.list.length === 0) {
+      return ResultUtil.fail<TeamDetailModel>(404, '你还没有加入任何小队');
+    }
+    const firstTeamId: number = listRes.data.list[0].id;
+    return this.loadTeamDetail(firstTeamId);
   }
 
   async joinTeam(id: number): Promise<AsyncResult<JoinTeamResultModel>> {

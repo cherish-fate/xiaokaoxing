@@ -222,7 +222,6 @@ struct HomePage {
         Column({ space: 16 }) {
           GreetingBar({
             greetingText: this.homeData.greeting.displayText(),
-            avatarUrl: this.homeData.user.avatarUrl
           })
 
           Column() {

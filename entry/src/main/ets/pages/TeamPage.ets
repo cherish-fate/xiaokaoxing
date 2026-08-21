@@ -114,12 +114,12 @@ struct TeamPage {
     this.createDesc = '';
     this.createNeedApproval = true;
     await this.load();
-    RouterUtil.push(RouteUrls.COMMUNITY_TEAM_DETAIL, { "id": res.data.id });
+    RouterUtil.pushWithParams(RouteUrls.COMMUNITY_TEAM_DETAIL, { "id": String(res.data.id) });
   }
 
   private async joinTeam(t: TeamItemModel) {
     if (t.isMember) {
-      RouterUtil.push(RouteUrls.COMMUNITY_TEAM_DETAIL, { "id": t.id });
+      RouterUtil.pushWithParams(RouteUrls.COMMUNITY_TEAM_DETAIL, { "id": String(t.id) });
       return;
     }
     const res = await teamRepository.joinTeam(t.id);
@@ -236,7 +236,9 @@ struct TeamPage {
           .fontSize(14)
           .fontColor(AppColors.PRIMARY)
           .onClick(() => {
-              RouterUtil.push(RouteUrls.COMMUNITY_TEAM_DETAIL, { "id": this.data.myTeams[0].id });
+            if (this.data.myTeams.length > 0) {
+              RouterUtil.pushWithParams(RouteUrls.COMMUNITY_TEAM_DETAIL, { "id": String(this.data.myTeams[0].id) });
+            }
           })
       }
       .width('100%')
@@ -379,7 +381,7 @@ struct TeamPage {
           .backgroundColor(AppColors.PRIMARY)
           .borderRadius(16)
           .textAlign(TextAlign.Center)
-          .onClick(() => RouterUtil.push(RouteUrls.COMMUNITY_TEAM_DETAIL, { "id": t.id }))
+          .onClick(() => RouterUtil.pushWithParams(RouteUrls.COMMUNITY_TEAM_DETAIL, { "id": String(t.id) }))
 
         if (t.pendingRequests > 0) {
           Text(`${t.pendingRequests}人待审核`)

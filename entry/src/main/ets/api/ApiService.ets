@@ -245,7 +245,6 @@ export interface CheckinStats {
   total_days: number;
   continuous_days: number;
   rank: number;
-  checked_week_days?: number[];
 }
 export interface HotVote {
   id: number;
@@ -254,7 +253,6 @@ export interface HotVote {
   vote_count: number;
   confidence: number;
   stars: number;
-  total_users?: number;
 }
 export interface HotTeam {
   id: number;
@@ -280,6 +278,8 @@ export interface CommunityHomeResponse {
   hot_votes: HotVote[];
   hot_teams: HotTeam[];
   latest_resources: CommunityResource[];
+  total_users?: number;
+  checked_week_days?: number[];
 }
 
 // 2. 打卡模块
@@ -429,6 +429,7 @@ export interface VoteItem {
 }
 export interface VoteListResponse {
   list: VoteItem[];
+  total_users?: number;
 }
 export interface SubmitVoteRequest {
   subject: string;
@@ -458,6 +459,7 @@ export interface MyVoteRecord {
 }
 export interface MyVoteListResponse {
   list: MyVoteRecord[];
+  total_users?: number;
 }
 export interface MySubmissionItem {
   id: number;
@@ -734,6 +736,15 @@ export interface UpdateDocOfflineRequest {
 export interface UpdateDocOfflineResponse {
   id: number;
   is_offline: boolean;
+}
+
+export interface DocumentFromResourceRequest {
+  resource_id: number;
+}
+
+export interface DocumentFromResourceResponse {
+  document_id: number;
+  already_exists: boolean;
 }
 
 // 6. 精选书签
@@ -1648,6 +1659,17 @@ class ApiService {
   }
   async deleteDocument(id: number): Promise<ApiResponse<null>> {
     return this.request<null>(`/api/documents/${id}`, http.RequestMethod.DELETE, null, true);
+  }
+
+  async createDocumentFromResource(resourceId: number): Promise<ApiResponse<DocumentFromResourceResponse>> {
+    const req: DocumentFromResourceRequest = { resource_id: resourceId };
+    return this.request<DocumentFromResourceResponse>('/api/documents/from-resource',
+      http.RequestMethod.POST, req, true);
+  }
+
+  async deleteDocumentFromResource(resourceId: number): Promise<ApiResponse<null>> {
+    return this.request<null>(`/api/documents/from-resource/${resourceId}`,
+      http.RequestMethod.DELETE, null, true);
   }
 
   // 6. 精选书签

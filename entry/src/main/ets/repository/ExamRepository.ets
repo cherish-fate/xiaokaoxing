@@ -6,17 +6,24 @@ import { DateUtil } from '../utils/DateUtil';
 
 const TAG = 'ExamRepository';
 
+export interface ExamListResult {
+  list: ExamModel[];
+  total: number;
+}
+
 export class ExamRepository {
-  async fetchExams(limit: number = 3, status: string = ''): Promise<AsyncResult<ExamModel[]>> {
+  async fetchExams(limit: number = 3, status: string = ''): Promise<AsyncResult<ExamListResult>> {
     const res: ApiResponse<ExamListResponse> = await apiService.fetchExams(limit, status);
     if (res.code === 401) {
-      return ResultUtil.fail<ExamModel[]>(401, res.message || '登录已过期');
+      return ResultUtil.fail<ExamListResult>(401, res.message || '登录已过期');
     }
     if (res.code !== 200 || !res.data) {
-      return ResultUtil.fail<ExamModel[]>(res.code, res.message || '获取考试失败');
+      return ResultUtil.fail<ExamListResult>(res.code, res.message || '获取考试失败');
     }
     const list = (res.data.list || []).map((item: ExamItem) => ExamRepository.toModel(item));
-    return ResultUtil.success(list);
+    const total = res.data.total || list.length;
+    const result: ExamListResult = { list: list, total: total };
+    return ResultUtil.success(result);
   }
 
   async createExam(req: CreateExamRequest): Promise<AsyncResult<ExamModel>> {

@@ -2,6 +2,7 @@ import { PrepResourceItemModel } from '../model/PrepModel';
 import { AppColors, AppSize } from '../utils/Constants';
 import { ToastUtil } from '../utils/ToastUtil';
 import { prepRepository } from '../repository/PrepRepository';
+import { documentRepository } from '../repository/DocumentRepository';
 import { RouterUtil } from '../utils/RouterUtil';
 import { Logger } from '../utils/Logger';
 
@@ -61,6 +62,12 @@ export struct PrepResourceSection {
           this.resources = this.replaceItemAndRefresh(this.resources, finalIdx);
         }
       }
+      // 收藏/取消收藏后，同步文档库：收藏→创建文档；取消收藏→删除文档
+      if (finalState) {
+        this.syncToDocumentLibrary(item.id);
+      } else {
+        this.removeFromDocumentLibrary(item.id);
+      }
     } else {
       // 失败回滚
       const rollbackIdx = this.resources.findIndex((r: PrepResourceItemModel) => r.id === item.id);
@@ -69,6 +76,36 @@ export struct PrepResourceSection {
         this.resources = this.replaceItemAndRefresh(this.resources, rollbackIdx);
       }
       ToastUtil.show(res.message || '操作失败，请重试');
+    }
+  }
+
+  private async syncToDocumentLibrary(resourceId: number): Promise<void> {
+    try {
+      const syncRes = await documentRepository.createFromResource(resourceId);
+      if (syncRes.success && syncRes.data) {
+        if (syncRes.data.alreadyExists) {
+          Logger.info(TAG, `资源${resourceId}已存在于文档库，跳过同步`);
+        } else {
+          Logger.info(TAG, `资源${resourceId}已同步到个人文档库`);
+        }
+      } else {
+        Logger.warn(TAG, `资源${resourceId}同步文档库失败：${syncRes.message}`);
+      }
+    } catch (e) {
+      Logger.error(TAG, `资源${resourceId}同步文档库异常`, e as Error);
+    }
+  }
+
+  private async removeFromDocumentLibrary(resourceId: number): Promise<void> {
+    try {
+      const delRes = await documentRepository.deleteFromResource(resourceId);
+      if (delRes.success) {
+        Logger.info(TAG, `资源${resourceId}对应文档已从个人文档库删除`);
+      } else {
+        Logger.warn(TAG, `资源${resourceId}文档库删除失败：${delRes.message}`);
+      }
+    } catch (e) {
+      Logger.error(TAG, `资源${resourceId}文档库删除异常`, e as Error);
     }
   }
 
